@@ -2,12 +2,14 @@ var mysql = require('mysql');
 
 module.exports = {
     open : function (config) {
-        this.connection = mysql.createConnection(config);
+        this.config = config || this.config;
+        this.connection = mysql.createConnection(this.config);
         return this;
     },
 
     open_pool : function (config) {
-        this.connection = mysql.createPool(config);
+        this.config = config || this.config;
+        this.connection = mysql.createPool(this.config);
         this.connection.connect(function (err) {
             console.log(err);
         });
@@ -93,10 +95,9 @@ module.exports = {
     },
 
     end : function () {
-        if (!this.ended) {
+        if (this.connection) {
             this.connection.end();
-            this.ended = true;
-            delete this.connection;
+            this.connection = null;
         }
     }
 };
