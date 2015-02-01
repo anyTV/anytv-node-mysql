@@ -21,6 +21,7 @@ module.exports = function (config, options) {
     }
 
     this.connect = function () {
+        var self = this;
         logger.log('connecting to', this.config);
         this.connection = mysql.createConnection(this.config);
         this.connection.connect(function (err) {
@@ -30,6 +31,16 @@ module.exports = function (config, options) {
             else {
                 logger.log('connected');
             }
+        });
+
+        this.connection.on('error', function (err) {
+            console.log('error', err);
+        });
+
+        this.connection.on('close', function (err) {
+            console.log('close', err);
+            logger.log('reconnecting');
+            self.connection = mysql.createConnection(self.config);
         });
         return this;
     };
@@ -125,15 +136,15 @@ module.exports = function (config, options) {
         return this;
     };
 
-    this.disconnect = function () {
-        logger.log('disconnect is called');
-        this.endit = true;
-        if (this.queries === this.done_queries && this.connection && this.connection.end) {
-            this.connection.end();
-            this.connection = null;
-            this.endit = false;
-            logger.log('disconnected');
-        }
+    this.end = function () {
+        // logger.log('disconnect is called');
+        // this.endit = true;
+        // if (this.queries === this.done_queries && this.connection && this.connection.end) {
+        //     this.connection.end();
+        //     this.connection = null;
+        //     this.endit = false;
+        //     logger.log('disconnected');
+        // }
     };
 
     this.end = this.disconnect;
