@@ -16,7 +16,7 @@ var asql = require('./index'),
         user : 'rvnjl',
         password : 'focusonrevenue',
         database : 'master'
-    });
+    }, {debug : true});
 
 
 

@@ -2,24 +2,40 @@
 
 var mysql = require('mysql');
 
-module.exports = function (config) {
+module.exports = function (config, options) {
+
+    var logger = {
+        log : function () {
+            if (options && options.debug) {
+                console.log.apply(console, arguments);
+            }
+        }
+    };
 
     this.queries = 0;
     this.done_queries = 0;
     this.config = config;
 
+    if (options && options.logger) {
+        logger = options.logger;
+    }
+
     this.connect = function () {
-        this.disconnect();
+        logger.log('connecting to', this.config);
         this.connection = mysql.createConnection(this.config);
         this.connection.connect(function (err) {
             if (err) {
                 console.log(err);
+            }
+            else {
+                logger.log('connected');
             }
         });
         return this;
     };
 
     this.args = function () {
+        logger.log('setting args', arguments);
         this._args = arguments;
         return this;
     };
@@ -76,13 +92,14 @@ module.exports = function (config) {
             self = this,
             cb,
             closure = function (err, result) {
-                self.querying = false;
-                cb(err, result, _args);
                 self.done_queries++;
-                if (self.done_queries === self.queries) {
-                    if (self.endit) {
-                        self.end();
-                    }
+                logger.log('done with query', self.done_queries);
+                self.querying = false;
+                logger.log('calling callback with', err, result);
+                cb(err, result, _args);
+                if (self.done_queries === self.queries && self.endit) {
+                    logger.log('done === pending, ending');
+                    self.end();
                 }
             };
 
@@ -98,6 +115,7 @@ module.exports = function (config) {
 
         if (this.connection) {
             this.querying = true;
+            logger.log('starting query', this.queries);
             this.connection.query.apply(this.connection, arguments);
         }
         else {
@@ -108,11 +126,13 @@ module.exports = function (config) {
     };
 
     this.disconnect = function () {
+        logger.log('disconnect is called');
         this.endit = true;
         if (this.queries === this.done_queries && this.connection && this.connection.end) {
             this.connection.end();
             this.connection = null;
             this.endit = false;
+            logger.log('disconnected');
         }
     };
 
