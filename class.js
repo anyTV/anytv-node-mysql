@@ -14,6 +14,8 @@ module.exports = function (config, options) {
 
     this.queries = 0;
     this.done_queries = 0;
+    config.limit = 2000;
+    config.acquireTimeout = 30 * 1000;
     this.config = config;
 
     if (options && options.logger) {
@@ -23,15 +25,7 @@ module.exports = function (config, options) {
     this.connect = function () {
         var self = this;
         logger.log('connecting to', this.config);
-        this.connection = mysql.createConnection(this.config);
-        this.connection.connect(function (err) {
-            if (err) {
-                console.log(err);
-            }
-            else {
-                logger.log('connected');
-            }
-        });
+        this.connection = mysql.createPool(this.config);
 
         this.connection.on('error', function (err) {
             console.log('error', err);
@@ -136,7 +130,7 @@ module.exports = function (config, options) {
         return this;
     };
 
-    this.end = function () {
+    this.disconnect = function () {
         // logger.log('disconnect is called');
         // this.endit = true;
         // if (this.queries === this.done_queries && this.connection && this.connection.end) {

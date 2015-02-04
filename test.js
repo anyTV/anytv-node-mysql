@@ -12,9 +12,9 @@ var asql = require('./index'),
     },
 
     conn = asql.open({
-        host : '203.177.42.90',
-        user : 'rvnjl',
-        password : 'focusonrevenue',
+        host : '127.0.0.1',
+        user : 'root',
+        password : '',
         database : 'master'
     }, {debug : true});
 
