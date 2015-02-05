@@ -15,7 +15,7 @@ module.exports = {
     hash : function (cfg) {
         var crypto = require('crypto');
         return crypto.createHash('sha1')
-            .update(JSON.stringify(cfg))
+            .update(JSON.stringify(cfg).toString())
             .digest('hex');
     }
 
