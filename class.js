@@ -35,6 +35,7 @@ module.exports = function (config, options) {
 
         this.connection.on('error', function (err) {
             console.log('error', err);
+            self.connection = mysql.createConnection(self.config);
         });
 
         this.connection.on('close', function (err) {
