@@ -20,7 +20,7 @@ var asql = require('./index'),
 
 
 
-for (var i = 0; i < 40; i++) {
+for (var i = 0; i < 40000; i++) {
     conn.query(
             'SELECT * FROM channel_stats WHERE insert_date LIKE ? LIMIT ?, ?',
             ['2015-01-31 %', 0, 50],
