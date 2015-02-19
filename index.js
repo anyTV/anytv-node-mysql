@@ -1,10 +1,29 @@
 'use strict';
 
-var mysql = require('mysql');
+var mysql = require('mysql'),
+    config;
 
 module.exports = {
-    open : function (config) {
+    open : function (_config) {
+        var self = this;
+
+        config = _config;
+
         this.connection = mysql.createConnection(config);
+
+        this.connection.on('error', function (err) {
+            console.log('error', err);
+        });
+
+        this.connection.on('close', function (err) {
+            console.log('close', err);
+            self.connection = mysql.createConnection(self.config);
+            if (self.pending) {
+                console.log('re querying');
+                self.query.apply(self, self.pending);
+            }
+        });
+
         return this;
     },
 
@@ -61,10 +80,14 @@ module.exports = {
     query : function () {
         var len = arguments.length,
             _args = this._args,
+            self = this,
             cb,
             closure = function (err, result) {
+                self.pending = null;
                 cb(err, result, _args);
             };
+
+        this.pending = arguments;
 
         while (len--) {
             if (typeof arguments[len] === 'function') {

@@ -1,6 +1,6 @@
 {
   "name": "anytv-node-mysql",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "node mysql helper",
   "main": "index.js",
   "dependencies": {
@@ -24,3 +24,4 @@
   },
   "homepage": "https://github.com/anyTV/anytv-node-mysql"
 }
+
