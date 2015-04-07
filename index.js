@@ -9,6 +9,10 @@ module.exports = {
 
         config = _config;
 
+        if (this.connection) {
+            this.connection.end();
+        }
+
         this.connection = mysql.createConnection(config);
 
         this.connection.on('error', function (err) {
@@ -105,6 +109,10 @@ module.exports = {
         }
 
         return this;
+    },
+
+    on : function (event, cb) {
+        return this.connection.on(event, cb);
     },
 
     end : function () {
