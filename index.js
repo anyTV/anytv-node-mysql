@@ -9,10 +9,6 @@ module.exports = {
 
         config = _config;
 
-        if (this.connection) {
-            this.connection.end();
-        }
-
         this.connection = mysql.createConnection(config);
 
         this.connection.on('error', function (err) {
