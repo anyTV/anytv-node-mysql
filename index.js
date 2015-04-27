@@ -5,7 +5,7 @@ var mysql = require('mysql'),
 
 module.exports = {
     escape: mysql.escape,
-    
+
     open : function (_config) {
         var self = this;
 
@@ -83,13 +83,19 @@ module.exports = {
         var len = arguments.length,
             _args = this._args,
             self = this,
+            last_query,
             cb,
+
             closure = function (err, result) {
                 self.pending = null;
+                if (err) {
+                    console.log('error on query:', last_query);
+                }
                 cb(err, result, _args);
             };
 
         this.pending = arguments;
+        last_query = arguments[0];
 
         while (len--) {
             if (typeof arguments[len] === 'function') {
