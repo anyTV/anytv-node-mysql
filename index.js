@@ -4,6 +4,8 @@ var mysql = require('mysql'),
     config;
 
 module.exports = {
+    escape: mysql.escape,
+    
     open : function (_config) {
         var self = this;
 
