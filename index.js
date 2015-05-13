@@ -26,6 +26,8 @@ module.exports = {
             }
         });
 
+        this.escapeId = this.connection.escapeId.bind(this.connection);
+
         return this;
     },
 
