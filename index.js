@@ -1,21 +1,25 @@
 'use strict';
 
 var mysql = require('mysql'),
-    config;
+    connections = {};
 
 module.exports = {
     escape: mysql.escape,
 
     open : function (_config) {
-        var self = this;
+        var self = this,
+            config_str;
 
-        config = _config;
+        this.config = _config;
 
-        if (this.connection) {
+        config_str = _config.host + '-' + _config.database;
+
+        if (connections[config_str]) {
+            this.connection = connections[config_str];
             return this;
         }
-        
-        this.connection = mysql.createPool(config);
+
+        this.connection = mysql.createPool(_config);
 
         this.connection.on('error', function (err) {
             console.log('error', err);
@@ -31,6 +35,8 @@ module.exports = {
         });
 
         this.escapeId = this.connection.escapeId.bind(this.connection);
+
+        connections[config_str] = this.connection;
 
         return this;
     },
