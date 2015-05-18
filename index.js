@@ -11,7 +11,7 @@ module.exports = {
 
         config = _config;
 
-        this.connection = mysql.createConnection(config);
+        this.connection = mysql.createPool(config);
 
         this.connection.on('error', function (err) {
             console.log('error', err);
@@ -19,7 +19,7 @@ module.exports = {
 
         this.connection.on('close', function (err) {
             console.log('close', err);
-            self.connection = mysql.createConnection(self.config);
+            self.connection = mysql.createPool(self.config);
             if (self.pending) {
                 console.log('re querying');
                 self.query.apply(self, self.pending);
