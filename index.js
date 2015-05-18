@@ -11,6 +11,10 @@ module.exports = {
 
         config = _config;
 
+        if (this.connection) {
+            return this;
+        }
+        
         this.connection = mysql.createPool(config);
 
         this.connection.on('error', function (err) {
