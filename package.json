@@ -1,6 +1,6 @@
 {
   "name": "anytv-node-mysql",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "node mysql helper",
   "main": "index.js",
   "dependencies": {

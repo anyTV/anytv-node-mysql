@@ -126,7 +126,7 @@ module.exports = {
     },
 
     end : function () {
-        this.connection.end();
+        // this.connection.end();
         return this;
     }
 };
