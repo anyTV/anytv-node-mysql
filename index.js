@@ -4,15 +4,19 @@ var mysql = require('mysql'),
     connections = {};
 
 module.exports = {
+
     escape: mysql.escape,
 
     open : function (_config) {
         var self = this,
-            config_str;
+            config_str = '',
+            i;
 
         this.config = _config;
 
-        config_str = _config.host + '-' + _config.database;
+        for (i in _config) {
+            config_str += _config[i];
+        }
 
         if (connections[config_str]) {
             this.connection = connections[config_str];
