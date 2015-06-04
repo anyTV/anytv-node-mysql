@@ -45,6 +45,10 @@ module.exports = {
         return this;
     },
 
+    graph: function (cb) {
+        this.grapher = cb;
+    },
+
     args : function () {
         this._args = arguments;
         return this;
@@ -100,6 +104,7 @@ module.exports = {
             _args = this._args,
             self = this,
             last_query,
+            start = +new Date(),
             cb,
 
             closure = function (err, result) {
@@ -108,6 +113,7 @@ module.exports = {
                     console.log('error on query:', last_query);
                 }
                 cb(err, result, _args);
+                self.grapher(start, +new Date());
             };
 
         this.pending = arguments;
