@@ -109,11 +109,16 @@ module.exports = {
 
             closure = function (err, result) {
                 self.pending = null;
+
                 if (err) {
                     console.log('error on query:', last_query);
                 }
+
                 cb(err, result, _args);
-                self.grapher(start, +new Date());
+
+                if (self.grapher) {
+                    self.grapher(start, +new Date());
+                }
             };
 
         this.pending = arguments;
