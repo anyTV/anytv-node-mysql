@@ -104,11 +104,15 @@ module.exports = {
             _args = this._args,
             self = this,
             last_query,
-            start = +new Date(),
+            start,
             cb,
 
             closure = function (err, result) {
                 self.pending = null;
+
+                if (self.grapher) {
+                    self.grapher(start, +new Date());
+                }
 
                 if (err) {
                     console.log('error on query:', last_query);
@@ -116,9 +120,6 @@ module.exports = {
 
                 cb(err, result, _args);
 
-                if (self.grapher) {
-                    self.grapher(start, +new Date());
-                }
             };
 
         this.pending = arguments;
@@ -133,6 +134,7 @@ module.exports = {
         }
 
         if (this.connection) {
+            start = +new Date();
             this.connection.query.apply(this.connection, arguments);
         }
         else {
