@@ -7,7 +7,7 @@ module.exports = {
 
     escape: mysql.escape,
 
-    open : function (_config) {
+    open: function (_config) {
         var self = this,
             config_str = '',
             i;
@@ -49,27 +49,27 @@ module.exports = {
         this.grapher = cb;
     },
 
-    args : function () {
+    args: function () {
         this._args = arguments;
         return this;
     },
 
-    async : function (query, args, async_args, collector, fn) {
+    async: function (query, args, async_args, collector, fn) {
         var self = this,
             results = [],
             len = args.length,
 
             _collector = function (err, result, _args) {
                 var temp = {
-                            err : err,
-                            result : result,
-                            args : _args
+                            err: err,
+                            result: result,
+                            args: _args
                         };
 
                 results.push(
                     collector
                     ? collector(err, result, _args)
-                    : temp
+                   : temp
                 );
 
                 if (!--len) {
@@ -91,7 +91,7 @@ module.exports = {
         args.forEach(function (arg, index) {
             self.args(async_args && async_args.hasOwnProperty(index)
                     ? async_args[index]
-                    : arg
+                   : arg
                 )
                 .query(query, arg, _collector);
         });
@@ -99,7 +99,7 @@ module.exports = {
         return this;
     },
 
-    query : function () {
+    query: function () {
         var len = arguments.length,
             _args = this._args,
             self = this,
@@ -114,12 +114,7 @@ module.exports = {
                     self.grapher(start, +new Date());
                 }
 
-                if (err) {
-                    console.log('error on query:', last_query);
-                }
-
-                cb(err, result, _args);
-
+                cb(err, result, _args, last_query);
             };
 
         this.pending = arguments;
@@ -144,11 +139,11 @@ module.exports = {
         return this;
     },
 
-    on : function (event, cb) {
+    on: function (event, cb) {
         return this.connection.on(event, cb);
     },
 
-    end : function () {
+    end: function () {
         // this.connection.end();
         return this;
     }
