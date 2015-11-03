@@ -2,10 +2,9 @@
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var Query = require('./Query');
 var mysql = require('mysql');
 
 var CustomMySQL = (function () {
@@ -39,7 +38,7 @@ var CustomMySQL = (function () {
                 this[key].is_pool = true;
                 this[key].connection = mysql.createPool(config);
                 this[key].connection.on('close', function (err) {
-                    return _this._logger.log('connection closed', err);
+                    return _this._logger.log('pool connection closed', err);
                 });
             }
 
@@ -59,15 +58,11 @@ var CustomMySQL = (function () {
             this.retryable_errors = null;
 
             if (!this[key].connection) {
-                this._logger.log('Creating connection');
                 this[key].connection = mysql.createConnection(this[key].config);
                 this[key].connection.connect(function (err) {
                     if (err) {
                         _this2._logger.log('error in creating connection', err);
                     }
-                });
-                this[key].connection.on('close', function (err) {
-                    return _this2._logger.log('connection closed', err);
                 });
             }
 
@@ -76,46 +71,7 @@ var CustomMySQL = (function () {
     }, {
         key: 'query',
         value: function query() {
-            var _this3 = this;
-
-            var last_query = arguments[0];
-            var len = arguments.length;
-            var _args = arguments;
-            var self = this;
-            var connection = undefined;
-            var cb = undefined;
-
-            this.pending = arguments;
-
-            while (len--) {
-                if (typeof arguments[len] === 'function') {
-                    cb = arguments[len];
-                    arguments[len] = function (err, result) {
-                        if (err && _this3.retryable_errors && ~_this3.retryable_errors.indexOf(err.code)) {
-                            _this3.retries++;
-                            _this3._logger.log('Retrying');
-
-                            if (_this3.retries === _this3.max_retry) {
-                                return cb({ message: 'Reached max retries' }, null, _this3._args, last_query);
-                            }
-
-                            return _this3.query.apply(_this3, _toConsumableArray(_args));
-                        }
-
-                        cb(err, result, _this3._args, last_query);
-                    };
-                    break;
-                }
-            }
-
-            connection = this._key && this[this._key].connection;
-
-            if (connection) {
-                connection.query.apply(connection, arguments);
-            } else {
-                throw new Error('Add a connection first by using mysql.add(key, config) or start a connection using mysql.use(key)');
-            }
-
+            new (Function.prototype.bind.apply(Query, [null].concat([this], Array.prototype.slice.call(arguments))))();
             return this;
         }
     }, {
@@ -178,7 +134,7 @@ var CustomMySQL = (function () {
     }, {
         key: 'async',
         value: function async(query, args, async_args, collector, fn) {
-            var _this4 = this;
+            var _this3 = this;
 
             var results = [];
             var len = args.length;
@@ -209,7 +165,7 @@ var CustomMySQL = (function () {
             }
 
             args.forEach(function (arg, index) {
-                _this4.args(async_args && async_args.hasOwnProperty(index) ? async_args[index] : arg).query(query, arg, _collector);
+                _this3.args(async_args && async_args.hasOwnProperty(index) ? async_args[index] : arg).query(query, arg, _collector);
             });
 
             return this;

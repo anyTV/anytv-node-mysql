@@ -1,5 +1,6 @@
 'use strict';
 
+const Query  = require('./Query');
 const mysql  = require('mysql');
 
 class CustomMySQL {
@@ -36,7 +37,7 @@ class CustomMySQL {
             this._logger.info('Added a pool connection for', key);
             this[key].is_pool = true;
             this[key].connection = mysql.createPool(config);
-            this[key].connection.on('close', err => this._logger.log('connection closed', err));
+            this[key].connection.on('close', err => this._logger.log('pool connection closed', err));
         }
 
         return this;
@@ -52,59 +53,19 @@ class CustomMySQL {
         this.retryable_errors = null;
 
         if (!this[key].connection) {
-            this._logger.log('Creating connection');
             this[key].connection = mysql.createConnection(this[key].config);
             this[key].connection.connect(err => {
                 if (err) {
                     this._logger.log('error in creating connection', err);
                 }
             });
-            this[key].connection.on('close', err => this._logger.log('connection closed', err));
         }
 
         return this;
     }
 
     query () {
-        let last_query = arguments[0];
-        let len = arguments.length;
-        let _args = arguments;
-        let self = this;
-        let connection;
-        let cb;
-
-        this.pending = arguments;
-
-        while (len--) {
-            if (typeof arguments[len] === 'function') {
-                cb = arguments[len];
-                arguments[len] = (err, result) => {
-                    if (err && this.retryable_errors && ~this.retryable_errors.indexOf(err.code)) {
-                        this.retries++;
-                        this._logger.log('Retrying');
-
-                        if (this.retries === this.max_retry) {
-                            return cb({message: 'Reached max retries'}, null, this._args, last_query);
-                        }
-
-                        return this.query(..._args);
-                    }
-
-                    cb(err, result, this._args, last_query);
-                };
-                break;
-            }
-        }
-
-        connection = this._key && this[this._key].connection;
-
-        if (connection) {
-            connection.query.apply(connection, arguments);
-        }
-        else {
-            throw new Error('Add a connection first by using mysql.add(key, config) or start a connection using mysql.use(key)');
-        }
-
+        new Query(this, ...arguments);
         return this;
     }
 
