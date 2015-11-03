@@ -1,0 +1,2 @@
+
+`babel CustomMySQL.js --out-file index.js`
