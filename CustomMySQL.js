@@ -12,10 +12,12 @@ class CustomMySQL {
 
     set max_retry (max) {
         this._max_retry = max;
+        return this;
     }
 
     set logger (logger) {
         this._logger = logger;
+        return this;
     }
 
     args () {
@@ -36,6 +38,8 @@ class CustomMySQL {
             this[key].connection = mysql.createPool(config);
             this[key].connection.on('close', err => this._logger.log('connection closed', err));
         }
+
+        return this;
     }
 
     use (key) {
@@ -112,6 +116,8 @@ class CustomMySQL {
         else if (!this._key || (this._key && !this[this._key].connection)) {
             throw new Error('Add a connection first by using mysql.add(key, config)');
         }
+
+        return this;
     }
 
     retry_if (retryable_errors) {

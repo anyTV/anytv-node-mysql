@@ -42,6 +42,8 @@ var CustomMySQL = (function () {
                     return _this._logger.log('connection closed', err);
                 });
             }
+
+            return this;
         }
     }, {
         key: 'use',
@@ -125,6 +127,8 @@ var CustomMySQL = (function () {
             } else if (!this._key || this._key && !this[this._key].connection) {
                 throw new Error('Add a connection first by using mysql.add(key, config)');
             }
+
+            return this;
         }
     }, {
         key: 'retry_if',
@@ -223,11 +227,13 @@ var CustomMySQL = (function () {
         key: 'max_retry',
         set: function set(max) {
             this._max_retry = max;
+            return this;
         }
     }, {
         key: 'logger',
         set: function set(logger) {
             this._logger = logger;
+            return this;
         }
     }]);
 
