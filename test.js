@@ -51,20 +51,15 @@ mysql.use('ytfreedom')
 
 // will create a new connection
 mysql.use('mine')
-	.transaction()
 	.query(
 		'INSERT INTO channel1 VALUES("aloha")',
-		(err, result) => {console.log(result);}
+		(err, result) => {console.log(err, result);}
 	)
+	.end()
 	.query(
 		'INSERT INTO channel1 VALUES("aloha2")',
-		(err, result) => {console.log(result);}
+		(err, result) => {console.log(err, result);}
 	)
 	// will terminate the created connection
-	.commit((err) => {
-		if (err) {
-			console.log(err);
-		}
-		process.exit(0);
-	});
+	.end();
 

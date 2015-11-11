@@ -1,1 +1,1 @@
-`babel CustomMySQL.js --out-file index.js`
+`babel lib --watch --out-dir es5lib`
