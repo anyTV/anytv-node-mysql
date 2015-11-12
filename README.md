@@ -16,7 +16,7 @@ npm install anytv-node-mysql --save
 * Do transactions elegantly
 * Automatic rollback on transactions
 * Easy to specify if you want a pool connection or a per-query connection
-* Specify errors that can be retried and set their max retries
+* Specify errors that can be retried and set their max retries (does not work on transactions yet)
 * Auto-reconnect
 * Easy debugging
 * Use `.args(...)` to help closures
@@ -140,7 +140,7 @@ function callback (err, result, args, last_query) {
 ```
 
 ### Handling callbacks and debugging errors
-We follow the node convention of callbacks. Error first followed by result.
+We follow the node convention for callbacks. The error first followed by result.
 ```javascript
 mysql.use('db1')
 	.query('INSERT INTO unique_email(email) VALUES (?)', ['unique'], callback)

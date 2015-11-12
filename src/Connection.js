@@ -16,7 +16,7 @@ export default class Connection {
         const key = handle._key;
         let connection;
 
-        if (handle.is_pool) {
+        if (handle[key].is_pool) {
             handle._logger.info('Added a pool connection for', key);
             connection = mysql.createPool(handle[key].config);
         }
@@ -55,7 +55,7 @@ export default class Connection {
         return this;
     }
 
-    keepAlive () {
+    keep_alive () {
         setInterval(() => {
             this.handle.query('SELECT 1;', (err) => {
                 if (err) {

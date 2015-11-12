@@ -1,5 +1,6 @@
 'use strict';
 
+import Connection from './Connection';
 import mysql from 'mysql';
 
 export default class Query {
@@ -7,6 +8,7 @@ export default class Query {
     constructor (mysql) {
         const args = Array.from(arguments);
 
+        this.previous_errors = [];
         this.mysql = mysql;
         this.retries = 0;
 
@@ -30,8 +32,21 @@ export default class Query {
             if (err && mysql_handler.retryable_errors && ~mysql_handler.retryable_errors.indexOf(err.code)) {
                 this.retries++;
 
+                this.previous_errors.push(JSON.parse(JSON.stringify(err)));
+
                 if (this.retries === mysql_handler._max_retry) {
-                    return cb({message: 'Reached max retries'}, null, mysql_handler._args, last_query);
+
+                    return cb(
+                        {
+                            message: 'Reached max retries',
+                            code: 'ER_MAX_RETRIES',
+                            max_tries: mysql_handler._max_retry,
+                            previous_errors: this.previous_errors
+                        },
+                        null,
+                        mysql_handler._args,
+                        last_query
+                    );
                 }
 
                 return this.query(..._args);
@@ -52,8 +67,14 @@ export default class Query {
             }
         }
 
-        connection = mysql_handler.current_connection;
-        connection.query.apply(connection, arguments);
 
+        if (!mysql_handler.current_connection) {
+            new Connection(mysql_handler);
+        }
+
+        mysql_handler
+            .current_connection
+            .query
+            .apply(mysql_handler.current_connection, arguments);
     }
 }

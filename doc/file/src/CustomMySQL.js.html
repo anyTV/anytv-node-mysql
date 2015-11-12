@@ -53,19 +53,69 @@ import mysql from &apos;mysql&apos;;
  */
 export default class CustomMySQL {
 
-    constructor (_logger = console, _max_retry = 3) {
+    constructor () {
         this.escape = mysql.escape;
-        this._logger = _logger;
-        this._max_retry = _max_retry;
+        this._logger = console;
+        this._max_retry = 3;
     }
 
-    set max_retry (max) {
-        this._max_retry = max;
+
+    set_logger (logger) {
+        this._logger = logger || console;
         return this;
     }
 
-    set logger (logger) {
-        this._logger = logger;
+    set_max_retry (max) {
+        this._max_retry = max || 3;
+        return this;
+    }
+
+
+    add (key, config, is_pool) {
+        if (!key || !config) {
+            throw new Error(&apos;key or config is missing&apos;);
+        }
+
+        if (typeof key !== &apos;string&apos;) {
+            throw new Error(&apos;key should be a string&apos;);
+        }
+
+        if (typeof config !== &apos;object&apos;) {
+            throw new Error(&apos;config should be an object&apos;);
+        }
+
+        this._key = key;
+        this[key] = {config};
+        this[key].is_pool = !!is_pool;
+
+        if (is_pool) {
+            new Connection(this);
+        }
+
+        return this;
+    }
+
+    retry_if (retryable_errors) {
+        this.retryable_errors = retryable_errors;
+        return this;
+    }
+
+    use (key) {
+        if (!key) {
+            throw new Error(&apos;key is missing&apos;);
+        }
+
+        if (!this[key]) {
+            throw new Error(&apos;Key does not exist. Add a connection first by using mysql.add(key, config, is_pool)&apos;);
+        }
+
+        this._key = key;
+        this.retryable_errors = null;
+
+        if (!this.is_pool &amp;&amp; this.current_connection) {
+            this.end();
+        }
+
         return this;
     }
 
@@ -78,38 +128,33 @@ export default class CustomMySQL {
         return this;
     }
 
-    add (key, config, is_pool) {
-        this._key = key;
-        this[key] = {config};
-        this[key].is_pool = !!is_pool;
-        if (is_pool) {
-            new Connection(this);
-        }
-        return this;
-    }
-
-    use (key) {
-        if (!this[key]) {
+    query () {
+        if (!this._key) {
             throw new Error(&apos;Key does not exist. Add a connection first by using mysql.add(key, config, is_pool)&apos;);
         }
 
-        this._key = key;
-        this.retryable_errors = null;
-
-        if (this.current_connection) {
-            this.end();
+        if (arguments.length &lt; 2) {
+            throw new Error(&apos;Incomplete arguments. Have at least a query and a callback&apos;);
         }
 
-        return this;
-    }
+        if (typeof arguments[0] !== &apos;string&apos;) {
+            throw new Error(&apos;Query is not a string&apos;);
+        }
 
-    query () {
-        if (!this.current_connection) {
-            new Connection(this);
+        if (typeof arguments[arguments.length - 1] !== &apos;function&apos;) {
+            throw new Error(&apos;Last parameter is not a function&apos;);
         }
 
         new Query(this, ...arguments);
         return this;
+    }
+
+    transaction () {
+        if (!this.current_connection) {
+            new Connection(this);
+        }
+
+        return new Transaction(this);
     }
 
     end () {
@@ -118,30 +163,13 @@ export default class CustomMySQL {
             this.current_connection = null;
             this[this._key].connection = null;
         }
-        else if (!this._key || (this._key &amp;&amp; !this[this._key].connection)) {
-            throw new Error(&apos;Add a connection first by using mysql.add(key, config)&apos;);
-        }
 
         return this;
     }
 
-    retry_if (retryable_errors) {
-        this.retryable_errors = retryable_errors;
-        return this;
-    }
 
 
-    transaction () {
-        if (!this.current_connection) {
-            new Connection(this);
-        }
-
-        this.is_transaction = true;
-        return new Transaction(this);
-    }
-
-
-    /* Everything below will be depreciated */
+    /* Everything below will be deprecated */
 
     open (config) {
         let self = this,

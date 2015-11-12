@@ -52,7 +52,7 @@
 <li>Do transactions elegantly</li>
 <li>Automatic rollback on transactions</li>
 <li>Easy to specify if you want a pool connection or a per-query connection</li>
-<li>Specify errors that can be retried and set their max retries</li>
+<li>Specify errors that can be retried and set their max retries (does not work on transactions yet)</li>
 <li>Auto-reconnect</li>
 <li>Easy debugging</li>
 <li>Use <code>.args(...)</code> to help closures</li>
@@ -157,7 +157,7 @@ function callback (err, result, args, last_query) {
 }</code>
 </code></pre>
 <h3 id="handling-callbacks-and-debugging-errors">Handling callbacks and debugging errors</h3>
-<p>We follow the node convention of callbacks. Error first followed by result.</p>
+<p>We follow the node convention for callbacks. The error first followed by result.</p>
 <pre><code class="lang-javascript"><code class="source-code prettyprint">mysql.use(&apos;db1&apos;)
     .query(&apos;INSERT INTO unique_email(email) VALUES (?)&apos;, [&apos;unique&apos;], callback)
     .end();
@@ -201,6 +201,9 @@ function callback (err, result, args, last_query) {
 mysql.use(&apos;db1&apos;)
     .query(&apos;INSERT INTO unique_email(email) VALUES (?)&apos;, [&apos;unique&apos;], callback)
     .end();</code>
+</code></pre>
+<h3 id="using-a-different-logger">Using a different logger</h3>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">mysql.set_logger(my_new_logger);</code>
 </code></pre>
 <h1 id="contributing">Contributing</h1>
 <p>Install the tools needed:</p>

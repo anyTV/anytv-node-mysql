@@ -384,9 +384,9 @@ window.esdocSearchIndex = [
     "member"
   ],
   [
-    "src/connection.js~connection#keepalive",
-    "class/src/Connection.js~Connection.html#instance-method-keepAlive",
-    "src/Connection.js~Connection#keepAlive",
+    "src/connection.js~connection#keep_alive",
+    "class/src/Connection.js~Connection.html#instance-method-keep_alive",
+    "src/Connection.js~Connection#keep_alive",
     "method"
   ],
   [
@@ -462,24 +462,6 @@ window.esdocSearchIndex = [
     "member"
   ],
   [
-    "src/custommysql.js~custommysql#is_transaction",
-    "class/src/CustomMySQL.js~CustomMySQL.html#instance-member-is_transaction",
-    "src/CustomMySQL.js~CustomMySQL#is_transaction",
-    "member"
-  ],
-  [
-    "src/custommysql.js~custommysql#logger",
-    "class/src/CustomMySQL.js~CustomMySQL.html#instance-set-logger",
-    "src/CustomMySQL.js~CustomMySQL#logger",
-    "member"
-  ],
-  [
-    "src/custommysql.js~custommysql#max_retry",
-    "class/src/CustomMySQL.js~CustomMySQL.html#instance-set-max_retry",
-    "src/CustomMySQL.js~CustomMySQL#max_retry",
-    "member"
-  ],
-  [
     "src/custommysql.js~custommysql#on",
     "class/src/CustomMySQL.js~CustomMySQL.html#instance-method-on",
     "src/CustomMySQL.js~CustomMySQL#on",
@@ -510,6 +492,18 @@ window.esdocSearchIndex = [
     "member"
   ],
   [
+    "src/custommysql.js~custommysql#set_logger",
+    "class/src/CustomMySQL.js~CustomMySQL.html#instance-method-set_logger",
+    "src/CustomMySQL.js~CustomMySQL#set_logger",
+    "method"
+  ],
+  [
+    "src/custommysql.js~custommysql#set_max_retry",
+    "class/src/CustomMySQL.js~CustomMySQL.html#instance-method-set_max_retry",
+    "src/CustomMySQL.js~CustomMySQL#set_max_retry",
+    "method"
+  ],
+  [
     "src/custommysql.js~custommysql#transaction",
     "class/src/CustomMySQL.js~CustomMySQL.html#instance-method-transaction",
     "src/CustomMySQL.js~CustomMySQL#transaction",
@@ -537,6 +531,12 @@ window.esdocSearchIndex = [
     "src/query.js~query#mysql",
     "class/src/Query.js~Query.html#instance-member-mysql",
     "src/Query.js~Query#mysql",
+    "member"
+  ],
+  [
+    "src/query.js~query#previous_errors",
+    "class/src/Query.js~Query.html#instance-member-previous_errors",
+    "src/Query.js~Query#previous_errors",
     "member"
   ],
   [

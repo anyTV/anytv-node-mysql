@@ -18,7 +18,7 @@ export default class CustomMySQL {
 
 
     set_logger (logger) {
-        this._logger = logger;
+        this._logger = logger || console;
         return this;
     }
 
@@ -52,7 +52,16 @@ export default class CustomMySQL {
         return this;
     }
 
+    retry_if (retryable_errors) {
+        this.retryable_errors = retryable_errors;
+        return this;
+    }
+
     use (key) {
+        if (!key) {
+            throw new Error('key is missing');
+        }
+
         if (!this[key]) {
             throw new Error('Key does not exist. Add a connection first by using mysql.add(key, config, is_pool)');
         }
@@ -60,7 +69,7 @@ export default class CustomMySQL {
         this._key = key;
         this.retryable_errors = null;
 
-        if (this.current_connection) {
+        if (!this.is_pool && this.current_connection) {
             this.end();
         }
 
@@ -77,32 +86,25 @@ export default class CustomMySQL {
     }
 
     query () {
-        if (!this.current_connection) {
-            new Connection(this);
+        if (!this._key) {
+            throw new Error('Key does not exist. Add a connection first by using mysql.add(key, config, is_pool)');
+        }
+
+        if (arguments.length < 2) {
+            throw new Error('Incomplete arguments. Have at least a query and a callback');
+        }
+
+        if (typeof arguments[0] !== 'string') {
+            throw new Error('Query is not a string');
+        }
+
+        if (typeof arguments[arguments.length - 1] !== 'function') {
+            throw new Error('Last parameter is not a function');
         }
 
         new Query(this, ...arguments);
         return this;
     }
-
-    end () {
-        if (this._key && !this[this._key].is_pool && this[this._key].connection) {
-            this[this._key].connection.end();
-            this.current_connection = null;
-            this[this._key].connection = null;
-        }
-        else if (!this._key || (this._key && !this[this._key].connection)) {
-            throw new Error('Add a connection first by using mysql.add(key, config)');
-        }
-
-        return this;
-    }
-
-    retry_if (retryable_errors) {
-        this.retryable_errors = retryable_errors;
-        return this;
-    }
-
 
     transaction () {
         if (!this.current_connection) {
@@ -112,8 +114,19 @@ export default class CustomMySQL {
         return new Transaction(this);
     }
 
+    end () {
+        if (this._key && !this[this._key].is_pool && this[this._key].connection) {
+            this[this._key].connection.end();
+            this.current_connection = null;
+            this[this._key].connection = null;
+        }
 
-    /* Everything below will be depreciated */
+        return this;
+    }
+
+
+
+    /* Everything below will be deprecated */
 
     open (config) {
         let self = this,

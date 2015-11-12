@@ -10,7 +10,7 @@
     "access": null,
     "description": null,
     "lineNumber": 1,
-    "content": "'use strict';\n\nimport mysql from 'mysql';\n\nexport default class Connection {\n\n    constructor (handle) {\n        this.max_retries = 3;\n        this.handle = handle;\n        this.retries = 0;\n        this.connect();\n    }\n\n    connect () {\n        const handle = this.handle;\n        const key = handle._key;\n        let connection;\n\n        if (handle.is_pool) {\n            handle._logger.info('Added a pool connection for', key);\n            connection = mysql.createPool(handle[key].config);\n        }\n        else {\n            handle._logger.log('Created a single connection');\n            connection = mysql.createConnection(handle[key].config);\n        }\n\n        handle[key].connection = connection;\n        handle.current_connection = handle[key].connection;\n\n        this.recon = this.recon.bind(this);\n\n        connection.on('close', this.recon);\n        connection.on('error', this.recon);\n\n        // this.keepAlive();\n        return this;\n    }\n\n    recon (err) {\n        this.handle._logger.error(\n            this.handle.is_pool\n                ? 'pool'\n                : 'single',\n            'connection error',\n            err\n        );\n\n        if (++this.retries >= this.max_retries) {\n            this.handle._logger.error('too many errors');\n            return;\n        }\n\n        this.connect();\n        return this;\n    }\n\n    keepAlive () {\n        setInterval(() => {\n            this.handle.query('SELECT 1;', (err) => {\n                if (err) {\n                    this.handle._logger.error(err);\n                }\n            });\n        }, 5000);\n\n        return this;\n    }\n\n    end () {\n        if (this.handle.current_connection) {\n            this.handle.current_connection.end();\n        }\n\n        return this;\n    }\n}\n"
+    "content": "'use strict';\n\nimport mysql from 'mysql';\n\nexport default class Connection {\n\n    constructor (handle) {\n        this.max_retries = 3;\n        this.handle = handle;\n        this.retries = 0;\n        this.connect();\n    }\n\n    connect () {\n        const handle = this.handle;\n        const key = handle._key;\n        let connection;\n\n        if (handle[key].is_pool) {\n            handle._logger.info('Added a pool connection for', key);\n            connection = mysql.createPool(handle[key].config);\n        }\n        else {\n            handle._logger.log('Created a single connection');\n            connection = mysql.createConnection(handle[key].config);\n        }\n\n        handle[key].connection = connection;\n        handle.current_connection = handle[key].connection;\n\n        this.recon = this.recon.bind(this);\n\n        connection.on('close', this.recon);\n        connection.on('error', this.recon);\n\n        // this.keepAlive();\n        return this;\n    }\n\n    recon (err) {\n        this.handle._logger.error(\n            this.handle.is_pool\n                ? 'pool'\n                : 'single',\n            'connection error',\n            err\n        );\n\n        if (++this.retries >= this.max_retries) {\n            this.handle._logger.error('too many errors');\n            return;\n        }\n\n        this.connect();\n        return this;\n    }\n\n    keep_alive () {\n        setInterval(() => {\n            this.handle.query('SELECT 1;', (err) => {\n                if (err) {\n                    this.handle._logger.error(err);\n                }\n            });\n        }, 5000);\n\n        return this;\n    }\n\n    end () {\n        if (this.handle.current_connection) {\n            this.handle.current_connection.end();\n        }\n\n        return this;\n    }\n}\n"
   },
   {
     "__docId__": 1,
@@ -175,9 +175,9 @@
     "kind": "method",
     "static": false,
     "variation": null,
-    "name": "keepAlive",
+    "name": "keep_alive",
     "memberof": "src/Connection.js~Connection",
-    "longname": "src/Connection.js~Connection#keepAlive",
+    "longname": "src/Connection.js~Connection#keep_alive",
     "access": null,
     "description": null,
     "lineNumber": 58,
@@ -221,7 +221,7 @@
     "access": null,
     "description": null,
     "lineNumber": 1,
-    "content": "'use strict';\n\nimport Transaction from './Transaction';\nimport Connection from './Connection';\nimport Query from './Query';\nimport mysql from 'mysql';\n\n/**\n * This is my class description\n */\nexport default class CustomMySQL {\n\n    constructor (_logger = console, _max_retry = 3) {\n        this.escape = mysql.escape;\n        this._logger = _logger;\n        this._max_retry = _max_retry;\n    }\n\n    set max_retry (max) {\n        this._max_retry = max;\n        return this;\n    }\n\n    set logger (logger) {\n        this._logger = logger;\n        return this;\n    }\n\n    args () {\n        if (!this._key) {\n            throw new Error('Key does not exist. Add a connection first by using mysql.add(key, config, is_pool)');\n        }\n\n        this._args = arguments;\n        return this;\n    }\n\n    add (key, config, is_pool) {\n        this._key = key;\n        this[key] = {config};\n        this[key].is_pool = !!is_pool;\n        if (is_pool) {\n            new Connection(this);\n        }\n        return this;\n    }\n\n    use (key) {\n        if (!this[key]) {\n            throw new Error('Key does not exist. Add a connection first by using mysql.add(key, config, is_pool)');\n        }\n\n        this._key = key;\n        this.retryable_errors = null;\n\n        if (this.current_connection) {\n            this.end();\n        }\n\n        return this;\n    }\n\n    query () {\n        if (!this.current_connection) {\n            new Connection(this);\n        }\n\n        new Query(this, ...arguments);\n        return this;\n    }\n\n    end () {\n        if (this._key && !this[this._key].is_pool && this[this._key].connection) {\n            this[this._key].connection.end();\n            this.current_connection = null;\n            this[this._key].connection = null;\n        }\n        else if (!this._key || (this._key && !this[this._key].connection)) {\n            throw new Error('Add a connection first by using mysql.add(key, config)');\n        }\n\n        return this;\n    }\n\n    retry_if (retryable_errors) {\n        this.retryable_errors = retryable_errors;\n        return this;\n    }\n\n\n    transaction () {\n        if (!this.current_connection) {\n            new Connection(this);\n        }\n\n        this.is_transaction = true;\n        return new Transaction(this);\n    }\n\n\n    /* Everything below will be depreciated */\n\n    open (config) {\n        let self = this,\n            config_str = '',\n            i;\n\n\n        for (i in config) {\n            config_str += config[i];\n        }\n\n\n        this._key = config_str;\n\n        if (this[config_str] && this[config_str].connection) {\n            return this;\n        }\n\n        this[config_str] = {\n            config,\n            is_pool: true,\n            connection: mysql.createPool(config)\n        };\n\n        this[config_str].connection.on('error', function (err) {\n            console.log('error', err);\n        });\n\n        this[config_str].connection.on('close', function (err) {\n            console.log('close', err);\n            self[config_str].connection = mysql.createPool(self[config_str].config);\n        });\n\n        this.escapeId = this[config_str].connection.escapeId.bind(this[config_str].connection);\n\n        return this;\n    }\n\n    async (query, args, async_args, collector, fn) {\n        let results = [];\n        let len = args.length;\n\n        function _collector (err, result, _args) {\n            let temp = {\n                err: err,\n                result: result,\n                args: _args\n            };\n\n            results.push(\n                collector\n                ? collector(err, result, _args)\n               : temp\n            );\n\n            if (!--len) {\n                fn(async_args || results);\n            }\n        }\n\n        if (arguments.length === 4) {\n            fn = collector;\n            collector = async_args;\n            async_args = null;\n        }\n\n        if (arguments.length === 3) {\n            fn = async_args;\n            async_args = null;\n        }\n\n        args.forEach((arg, index) => {\n            this.args(async_args && async_args.hasOwnProperty(index)\n                    ? async_args[index]\n                   : arg\n                )\n                .query(query, arg, _collector);\n        });\n\n        return this;\n    }\n\n    on (_event, cb) {\n        if (!this._key) {\n            throw new Error('Key does not exist. Add a connection first by using mysql.add(key, config, is_pool)');\n        }\n\n        return this[this._key].connection.on(_event, cb);\n    }\n}\n"
+    "content": "'use strict';\n\nimport Transaction from './Transaction';\nimport Connection from './Connection';\nimport Query from './Query';\nimport mysql from 'mysql';\n\n/**\n * This is my class description\n */\nexport default class CustomMySQL {\n\n    constructor () {\n        this.escape = mysql.escape;\n        this._logger = console;\n        this._max_retry = 3;\n    }\n\n\n    set_logger (logger) {\n        this._logger = logger || console;\n        return this;\n    }\n\n    set_max_retry (max) {\n        this._max_retry = max || 3;\n        return this;\n    }\n\n\n    add (key, config, is_pool) {\n        if (!key || !config) {\n            throw new Error('key or config is missing');\n        }\n\n        if (typeof key !== 'string') {\n            throw new Error('key should be a string');\n        }\n\n        if (typeof config !== 'object') {\n            throw new Error('config should be an object');\n        }\n\n        this._key = key;\n        this[key] = {config};\n        this[key].is_pool = !!is_pool;\n\n        if (is_pool) {\n            new Connection(this);\n        }\n\n        return this;\n    }\n\n    retry_if (retryable_errors) {\n        this.retryable_errors = retryable_errors;\n        return this;\n    }\n\n    use (key) {\n        if (!key) {\n            throw new Error('key is missing');\n        }\n\n        if (!this[key]) {\n            throw new Error('Key does not exist. Add a connection first by using mysql.add(key, config, is_pool)');\n        }\n\n        this._key = key;\n        this.retryable_errors = null;\n\n        if (!this.is_pool && this.current_connection) {\n            this.end();\n        }\n\n        return this;\n    }\n\n    args () {\n        if (!this._key) {\n            throw new Error('Key does not exist. Add a connection first by using mysql.add(key, config, is_pool)');\n        }\n\n        this._args = arguments;\n        return this;\n    }\n\n    query () {\n        if (!this._key) {\n            throw new Error('Key does not exist. Add a connection first by using mysql.add(key, config, is_pool)');\n        }\n\n        if (arguments.length < 2) {\n            throw new Error('Incomplete arguments. Have at least a query and a callback');\n        }\n\n        if (typeof arguments[0] !== 'string') {\n            throw new Error('Query is not a string');\n        }\n\n        if (typeof arguments[arguments.length - 1] !== 'function') {\n            throw new Error('Last parameter is not a function');\n        }\n\n        new Query(this, ...arguments);\n        return this;\n    }\n\n    transaction () {\n        if (!this.current_connection) {\n            new Connection(this);\n        }\n\n        return new Transaction(this);\n    }\n\n    end () {\n        if (this._key && !this[this._key].is_pool && this[this._key].connection) {\n            this[this._key].connection.end();\n            this.current_connection = null;\n            this[this._key].connection = null;\n        }\n\n        return this;\n    }\n\n\n\n    /* Everything below will be deprecated */\n\n    open (config) {\n        let self = this,\n            config_str = '',\n            i;\n\n\n        for (i in config) {\n            config_str += config[i];\n        }\n\n\n        this._key = config_str;\n\n        if (this[config_str] && this[config_str].connection) {\n            return this;\n        }\n\n        this[config_str] = {\n            config,\n            is_pool: true,\n            connection: mysql.createPool(config)\n        };\n\n        this[config_str].connection.on('error', function (err) {\n            console.log('error', err);\n        });\n\n        this[config_str].connection.on('close', function (err) {\n            console.log('close', err);\n            self[config_str].connection = mysql.createPool(self[config_str].config);\n        });\n\n        this.escapeId = this[config_str].connection.escapeId.bind(this[config_str].connection);\n\n        return this;\n    }\n\n    async (query, args, async_args, collector, fn) {\n        let results = [];\n        let len = args.length;\n\n        function _collector (err, result, _args) {\n            let temp = {\n                err: err,\n                result: result,\n                args: _args\n            };\n\n            results.push(\n                collector\n                ? collector(err, result, _args)\n               : temp\n            );\n\n            if (!--len) {\n                fn(async_args || results);\n            }\n        }\n\n        if (arguments.length === 4) {\n            fn = collector;\n            collector = async_args;\n            async_args = null;\n        }\n\n        if (arguments.length === 3) {\n            fn = async_args;\n            async_args = null;\n        }\n\n        args.forEach((arg, index) => {\n            this.args(async_args && async_args.hasOwnProperty(index)\n                    ? async_args[index]\n                   : arg\n                )\n                .query(query, arg, _collector);\n        });\n\n        return this;\n    }\n\n    on (_event, cb) {\n        if (!this._key) {\n            throw new Error('Key does not exist. Add a connection first by using mysql.add(key, config, is_pool)');\n        }\n\n        return this[this._key].connection.on(_event, cb);\n    }\n}\n"
   },
   {
     "__docId__": 12,
@@ -251,26 +251,7 @@
     "description": null,
     "lineNumber": 13,
     "undocument": true,
-    "params": [
-      {
-        "name": "_logger",
-        "optional": true,
-        "types": [
-          "*"
-        ],
-        "defaultRaw": "console",
-        "defaultValue": "console"
-      },
-      {
-        "name": "_max_retry",
-        "optional": true,
-        "types": [
-          "number"
-        ],
-        "defaultRaw": 3,
-        "defaultValue": "3"
-      }
-    ],
+    "params": [],
     "generator": false
   },
   {
@@ -323,23 +304,31 @@
     "undocument": true,
     "type": {
       "types": [
-        "*"
+        "number"
       ]
     }
   },
   {
     "__docId__": 17,
-    "kind": "set",
+    "kind": "method",
     "static": false,
     "variation": null,
-    "name": "max_retry",
+    "name": "set_logger",
     "memberof": "src/CustomMySQL.js~CustomMySQL",
-    "longname": "src/CustomMySQL.js~CustomMySQL#max_retry",
+    "longname": "src/CustomMySQL.js~CustomMySQL#set_logger",
     "access": null,
     "description": null,
-    "lineNumber": 19,
+    "lineNumber": 20,
     "undocument": true,
-    "type": {
+    "params": [
+      {
+        "name": "logger",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
       "types": [
         "*"
       ]
@@ -351,12 +340,12 @@
     "kind": "member",
     "static": false,
     "variation": null,
-    "name": "_max_retry",
+    "name": "_logger",
     "memberof": "src/CustomMySQL.js~CustomMySQL",
-    "longname": "src/CustomMySQL.js~CustomMySQL#_max_retry",
+    "longname": "src/CustomMySQL.js~CustomMySQL#_logger",
     "access": null,
     "description": null,
-    "lineNumber": 20,
+    "lineNumber": 21,
     "undocument": true,
     "type": {
       "types": [
@@ -366,17 +355,25 @@
   },
   {
     "__docId__": 19,
-    "kind": "set",
+    "kind": "method",
     "static": false,
     "variation": null,
-    "name": "logger",
+    "name": "set_max_retry",
     "memberof": "src/CustomMySQL.js~CustomMySQL",
-    "longname": "src/CustomMySQL.js~CustomMySQL#logger",
+    "longname": "src/CustomMySQL.js~CustomMySQL#set_max_retry",
     "access": null,
     "description": null,
-    "lineNumber": 24,
+    "lineNumber": 25,
     "undocument": true,
-    "type": {
+    "params": [
+      {
+        "name": "max",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
       "types": [
         "*"
       ]
@@ -388,12 +385,12 @@
     "kind": "member",
     "static": false,
     "variation": null,
-    "name": "_logger",
+    "name": "_max_retry",
     "memberof": "src/CustomMySQL.js~CustomMySQL",
-    "longname": "src/CustomMySQL.js~CustomMySQL#_logger",
+    "longname": "src/CustomMySQL.js~CustomMySQL#_max_retry",
     "access": null,
     "description": null,
-    "lineNumber": 25,
+    "lineNumber": 26,
     "undocument": true,
     "type": {
       "types": [
@@ -406,50 +403,12 @@
     "kind": "method",
     "static": false,
     "variation": null,
-    "name": "args",
-    "memberof": "src/CustomMySQL.js~CustomMySQL",
-    "longname": "src/CustomMySQL.js~CustomMySQL#args",
-    "access": null,
-    "description": null,
-    "lineNumber": 29,
-    "undocument": true,
-    "params": [],
-    "return": {
-      "types": [
-        "*"
-      ]
-    },
-    "generator": false
-  },
-  {
-    "__docId__": 22,
-    "kind": "member",
-    "static": false,
-    "variation": null,
-    "name": "_args",
-    "memberof": "src/CustomMySQL.js~CustomMySQL",
-    "longname": "src/CustomMySQL.js~CustomMySQL#_args",
-    "access": null,
-    "description": null,
-    "lineNumber": 34,
-    "undocument": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 23,
-    "kind": "method",
-    "static": false,
-    "variation": null,
     "name": "add",
     "memberof": "src/CustomMySQL.js~CustomMySQL",
     "longname": "src/CustomMySQL.js~CustomMySQL#add",
     "access": null,
     "description": null,
-    "lineNumber": 38,
+    "lineNumber": 31,
     "undocument": true,
     "params": [
       {
@@ -479,7 +438,7 @@
     "generator": false
   },
   {
-    "__docId__": 24,
+    "__docId__": 22,
     "kind": "member",
     "static": false,
     "variation": null,
@@ -488,7 +447,52 @@
     "longname": "src/CustomMySQL.js~CustomMySQL#_key",
     "access": null,
     "description": null,
-    "lineNumber": 39,
+    "lineNumber": 44,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 23,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "retry_if",
+    "memberof": "src/CustomMySQL.js~CustomMySQL",
+    "longname": "src/CustomMySQL.js~CustomMySQL#retry_if",
+    "access": null,
+    "description": null,
+    "lineNumber": 55,
+    "undocument": true,
+    "params": [
+      {
+        "name": "retryable_errors",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 24,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "retryable_errors",
+    "memberof": "src/CustomMySQL.js~CustomMySQL",
+    "longname": "src/CustomMySQL.js~CustomMySQL#retryable_errors",
+    "access": null,
+    "description": null,
+    "lineNumber": 56,
     "undocument": true,
     "type": {
       "types": [
@@ -506,7 +510,7 @@
     "longname": "src/CustomMySQL.js~CustomMySQL#use",
     "access": null,
     "description": null,
-    "lineNumber": 48,
+    "lineNumber": 60,
     "undocument": true,
     "params": [
       {
@@ -533,7 +537,7 @@
     "longname": "src/CustomMySQL.js~CustomMySQL#_key",
     "access": null,
     "description": null,
-    "lineNumber": 53,
+    "lineNumber": 69,
     "undocument": true,
     "type": {
       "types": [
@@ -551,7 +555,7 @@
     "longname": "src/CustomMySQL.js~CustomMySQL#retryable_errors",
     "access": null,
     "description": null,
-    "lineNumber": 54,
+    "lineNumber": 70,
     "undocument": true,
     "type": {
       "types": [
@@ -564,12 +568,12 @@
     "kind": "method",
     "static": false,
     "variation": null,
-    "name": "query",
+    "name": "args",
     "memberof": "src/CustomMySQL.js~CustomMySQL",
-    "longname": "src/CustomMySQL.js~CustomMySQL#query",
+    "longname": "src/CustomMySQL.js~CustomMySQL#args",
     "access": null,
     "description": null,
-    "lineNumber": 63,
+    "lineNumber": 79,
     "undocument": true,
     "params": [],
     "return": {
@@ -581,15 +585,33 @@
   },
   {
     "__docId__": 29,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_args",
+    "memberof": "src/CustomMySQL.js~CustomMySQL",
+    "longname": "src/CustomMySQL.js~CustomMySQL#_args",
+    "access": null,
+    "description": null,
+    "lineNumber": 84,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 30,
     "kind": "method",
     "static": false,
     "variation": null,
-    "name": "end",
+    "name": "query",
     "memberof": "src/CustomMySQL.js~CustomMySQL",
-    "longname": "src/CustomMySQL.js~CustomMySQL#end",
+    "longname": "src/CustomMySQL.js~CustomMySQL#query",
     "access": null,
     "description": null,
-    "lineNumber": 72,
+    "lineNumber": 88,
     "undocument": true,
     "params": [],
     "return": {
@@ -600,43 +622,18 @@
     "generator": false
   },
   {
-    "__docId__": 30,
-    "kind": "member",
-    "static": false,
-    "variation": null,
-    "name": "current_connection",
-    "memberof": "src/CustomMySQL.js~CustomMySQL",
-    "longname": "src/CustomMySQL.js~CustomMySQL#current_connection",
-    "access": null,
-    "description": null,
-    "lineNumber": 75,
-    "undocument": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
     "__docId__": 31,
     "kind": "method",
     "static": false,
     "variation": null,
-    "name": "retry_if",
+    "name": "transaction",
     "memberof": "src/CustomMySQL.js~CustomMySQL",
-    "longname": "src/CustomMySQL.js~CustomMySQL#retry_if",
+    "longname": "src/CustomMySQL.js~CustomMySQL#transaction",
     "access": null,
     "description": null,
-    "lineNumber": 85,
+    "lineNumber": 109,
     "undocument": true,
-    "params": [
-      {
-        "name": "retryable_errors",
-        "types": [
-          "*"
-        ]
-      }
-    ],
+    "params": [],
     "return": {
       "types": [
         "*"
@@ -646,33 +643,15 @@
   },
   {
     "__docId__": 32,
-    "kind": "member",
-    "static": false,
-    "variation": null,
-    "name": "retryable_errors",
-    "memberof": "src/CustomMySQL.js~CustomMySQL",
-    "longname": "src/CustomMySQL.js~CustomMySQL#retryable_errors",
-    "access": null,
-    "description": null,
-    "lineNumber": 86,
-    "undocument": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 33,
     "kind": "method",
     "static": false,
     "variation": null,
-    "name": "transaction",
+    "name": "end",
     "memberof": "src/CustomMySQL.js~CustomMySQL",
-    "longname": "src/CustomMySQL.js~CustomMySQL#transaction",
+    "longname": "src/CustomMySQL.js~CustomMySQL#end",
     "access": null,
     "description": null,
-    "lineNumber": 91,
+    "lineNumber": 117,
     "undocument": true,
     "params": [],
     "return": {
@@ -683,25 +662,25 @@
     "generator": false
   },
   {
-    "__docId__": 34,
+    "__docId__": 33,
     "kind": "member",
     "static": false,
     "variation": null,
-    "name": "is_transaction",
+    "name": "current_connection",
     "memberof": "src/CustomMySQL.js~CustomMySQL",
-    "longname": "src/CustomMySQL.js~CustomMySQL#is_transaction",
+    "longname": "src/CustomMySQL.js~CustomMySQL#current_connection",
     "access": null,
     "description": null,
-    "lineNumber": 96,
+    "lineNumber": 120,
     "undocument": true,
     "type": {
       "types": [
-        "boolean"
+        "*"
       ]
     }
   },
   {
-    "__docId__": 35,
+    "__docId__": 34,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -710,7 +689,7 @@
     "longname": "src/CustomMySQL.js~CustomMySQL#open",
     "access": null,
     "description": null,
-    "lineNumber": 103,
+    "lineNumber": 131,
     "undocument": true,
     "params": [
       {
@@ -728,7 +707,7 @@
     "generator": false
   },
   {
-    "__docId__": 36,
+    "__docId__": 35,
     "kind": "member",
     "static": false,
     "variation": null,
@@ -737,7 +716,25 @@
     "longname": "src/CustomMySQL.js~CustomMySQL#_key",
     "access": null,
     "description": null,
-    "lineNumber": 114,
+    "lineNumber": 142,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 36,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "escapeId",
+    "memberof": "src/CustomMySQL.js~CustomMySQL",
+    "longname": "src/CustomMySQL.js~CustomMySQL#escapeId",
+    "access": null,
+    "description": null,
+    "lineNumber": 163,
     "undocument": true,
     "type": {
       "types": [
@@ -747,24 +744,6 @@
   },
   {
     "__docId__": 37,
-    "kind": "member",
-    "static": false,
-    "variation": null,
-    "name": "escapeId",
-    "memberof": "src/CustomMySQL.js~CustomMySQL",
-    "longname": "src/CustomMySQL.js~CustomMySQL#escapeId",
-    "access": null,
-    "description": null,
-    "lineNumber": 135,
-    "undocument": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 38,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -773,7 +752,7 @@
     "longname": "src/CustomMySQL.js~CustomMySQL#async",
     "access": null,
     "description": null,
-    "lineNumber": 140,
+    "lineNumber": 168,
     "undocument": true,
     "params": [
       {
@@ -815,7 +794,7 @@
     "generator": false
   },
   {
-    "__docId__": 39,
+    "__docId__": 38,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -824,7 +803,7 @@
     "longname": "src/CustomMySQL.js~CustomMySQL#on",
     "access": null,
     "description": null,
-    "lineNumber": 184,
+    "lineNumber": 212,
     "undocument": true,
     "params": [
       {
@@ -848,7 +827,7 @@
     "generator": false
   },
   {
-    "__docId__": 40,
+    "__docId__": 39,
     "kind": "file",
     "static": true,
     "variation": null,
@@ -858,10 +837,10 @@
     "access": null,
     "description": null,
     "lineNumber": 1,
-    "content": "'use strict';\n\nimport mysql from 'mysql';\n\nexport default class Query {\n\n    constructor (mysql) {\n        const args = Array.from(arguments);\n\n        this.mysql = mysql;\n        this.retries = 0;\n\n        args.shift();\n\n        this.query(...args);\n    }\n\n    query () {\n        const _args = Array.from(arguments);\n        const mysql_handler = this.mysql;\n        const last_query = arguments[0];\n\n        let len = arguments.length;\n        let connection;\n        let cb;\n\n        function new_callback (err, result) {\n\n            // if retryable, re-try\n            if (err && mysql_handler.retryable_errors && ~mysql_handler.retryable_errors.indexOf(err.code)) {\n                this.retries++;\n\n                if (this.retries === mysql_handler._max_retry) {\n                    return cb({message: 'Reached max retries'}, null, mysql_handler._args, last_query);\n                }\n\n                return this.query(..._args);\n            }\n\n            // call callback\n            cb(err, result, mysql_handler._args, last_query);\n        }\n\n        while (len--) {\n            if (typeof arguments[len] === 'function') {\n                // get callback\n                cb = arguments[len];\n\n                // replace callback\n                arguments[len] = new_callback.bind(this);\n                break;\n            }\n        }\n\n        connection = mysql_handler.current_connection;\n        connection.query.apply(connection, arguments);\n\n    }\n}\n"
+    "content": "'use strict';\n\nimport Connection from './Connection';\nimport mysql from 'mysql';\n\nexport default class Query {\n\n    constructor (mysql) {\n        const args = Array.from(arguments);\n\n        this.previous_errors = [];\n        this.mysql = mysql;\n        this.retries = 0;\n\n        args.shift();\n\n        this.query(...args);\n    }\n\n    query () {\n        const _args = Array.from(arguments);\n        const mysql_handler = this.mysql;\n        const last_query = arguments[0];\n\n        let len = arguments.length;\n        let connection;\n        let cb;\n\n        function new_callback (err, result) {\n\n            // if retryable, re-try\n            if (err && mysql_handler.retryable_errors && ~mysql_handler.retryable_errors.indexOf(err.code)) {\n                this.retries++;\n\n                this.previous_errors.push(JSON.parse(JSON.stringify(err)));\n\n                if (this.retries === mysql_handler._max_retry) {\n\n                    return cb(\n                        {\n                            message: 'Reached max retries',\n                            code: 'ER_MAX_RETRIES',\n                            max_tries: mysql_handler._max_retry,\n                            previous_errors: this.previous_errors\n                        },\n                        null,\n                        mysql_handler._args,\n                        last_query\n                    );\n                }\n\n                return this.query(..._args);\n            }\n\n            // call callback\n            cb(err, result, mysql_handler._args, last_query);\n        }\n\n        while (len--) {\n            if (typeof arguments[len] === 'function') {\n                // get callback\n                cb = arguments[len];\n\n                // replace callback\n                arguments[len] = new_callback.bind(this);\n                break;\n            }\n        }\n\n\n        if (!mysql_handler.current_connection) {\n            new Connection(mysql_handler);\n        }\n\n        mysql_handler\n            .current_connection\n            .query\n            .apply(mysql_handler.current_connection, arguments);\n    }\n}\n"
   },
   {
-    "__docId__": 41,
+    "__docId__": 40,
     "kind": "class",
     "static": true,
     "variation": null,
@@ -873,12 +852,12 @@
     "importPath": "anytv-node-mysql/src/Query.js",
     "importStyle": "Query",
     "description": null,
-    "lineNumber": 5,
+    "lineNumber": 6,
     "undocument": true,
     "interface": false
   },
   {
-    "__docId__": 42,
+    "__docId__": 41,
     "kind": "constructor",
     "static": false,
     "variation": null,
@@ -887,7 +866,7 @@
     "longname": "src/Query.js~Query#constructor",
     "access": null,
     "description": null,
-    "lineNumber": 7,
+    "lineNumber": 8,
     "undocument": true,
     "params": [
       {
@@ -900,6 +879,24 @@
     "generator": false
   },
   {
+    "__docId__": 42,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "previous_errors",
+    "memberof": "src/Query.js~Query",
+    "longname": "src/Query.js~Query#previous_errors",
+    "access": null,
+    "description": null,
+    "lineNumber": 11,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
     "__docId__": 43,
     "kind": "member",
     "static": false,
@@ -909,7 +906,7 @@
     "longname": "src/Query.js~Query#mysql",
     "access": null,
     "description": null,
-    "lineNumber": 10,
+    "lineNumber": 12,
     "undocument": true,
     "type": {
       "types": [
@@ -927,7 +924,7 @@
     "longname": "src/Query.js~Query#retries",
     "access": null,
     "description": null,
-    "lineNumber": 11,
+    "lineNumber": 13,
     "undocument": true,
     "type": {
       "types": [
@@ -945,7 +942,7 @@
     "longname": "src/Query.js~Query#query",
     "access": null,
     "description": null,
-    "lineNumber": 18,
+    "lineNumber": 20,
     "undocument": true,
     "params": [],
     "generator": false

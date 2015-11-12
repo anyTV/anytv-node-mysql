@@ -1,6 +1,6 @@
 {
   "name": "anytv-node-mysql",
-  "version": "0.0.35",
+  "version": "0.0.36",
   "description": "node mysql helper",
   "main": "index.js",
   "dependencies": {
@@ -12,7 +12,7 @@
   },
   "scripts": {
     "test": "make test",
-    "dev-test": "export NODE_ENV=test && mocha tests --watch --recursive -R spec -t 5000 -s 10"
+    "dev-test": "export NODE_ENV=test && mocha tests --watch --recursive -R spec -t 20000 -s 10"
   },
   "repository": {
     "type": "git",

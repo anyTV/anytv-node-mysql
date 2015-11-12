@@ -19,38 +19,38 @@
       ]
     },
     "src/CustomMySQL.js": {
-      "expectCount": 19,
+      "expectCount": 18,
       "actualCount": 1,
       "undocumentLines": [
-        38,
-        29,
-        140,
+        31,
+        79,
+        168,
         13,
-        75,
-        72,
+        120,
+        117,
         14,
-        135,
-        96,
-        24,
-        19,
-        184,
-        103,
-        63,
-        85,
-        54,
-        91,
-        48
+        163,
+        212,
+        131,
+        88,
+        55,
+        56,
+        20,
+        25,
+        109,
+        60
       ]
     },
     "src/Query.js": {
-      "expectCount": 5,
+      "expectCount": 6,
       "actualCount": 0,
       "undocumentLines": [
-        5,
-        7,
-        10,
-        18,
-        11
+        6,
+        8,
+        12,
+        11,
+        20,
+        13
       ]
     },
     "src/Transaction.js": {
