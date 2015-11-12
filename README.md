@@ -1,5 +1,7 @@
 # anytv-node-mysql
 
+[![Build Status](https://travis-ci.org/anyTV/anytv-node-mysql.svg?branch=master)](https://travis-ci.org/anyTV/anytv-node-mysql)
+
 Our version of mysql that makes connecting to mysql simpler and more elegant. Especially made for our awesome expressjs [boilerplate](https://github.com/anyTV/anytv-node-boilerplate).
 
 
