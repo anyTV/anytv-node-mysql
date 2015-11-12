@@ -360,19 +360,6 @@ describe('Overall test', () => {
 
 
 
-    it ('mysql.args should return the mysql object', (done) => {
-        const mysql = new CustomMySQL();
-        const key = 'key';
-
-        mysql.add(key, {})
-            .args()
-            .should.equal(mysql);
-
-        done();
-    });
-
-
-
     it ('mysql.query should throw an error if key is not yet set', (done) => {
         const mysql = new CustomMySQL();
 
