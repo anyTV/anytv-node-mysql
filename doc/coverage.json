@@ -1,0 +1,75 @@
+{
+  "coverage": "2.22%",
+  "expectCount": 45,
+  "actualCount": 1,
+  "files": {
+    "src/Connection.js": {
+      "expectCount": 9,
+      "actualCount": 0,
+      "undocumentLines": [
+        5,
+        14,
+        7,
+        70,
+        9,
+        58,
+        8,
+        40,
+        10
+      ]
+    },
+    "src/CustomMySQL.js": {
+      "expectCount": 19,
+      "actualCount": 1,
+      "undocumentLines": [
+        38,
+        29,
+        140,
+        13,
+        75,
+        72,
+        14,
+        135,
+        96,
+        24,
+        19,
+        184,
+        103,
+        63,
+        85,
+        54,
+        91,
+        48
+      ]
+    },
+    "src/Query.js": {
+      "expectCount": 5,
+      "actualCount": 0,
+      "undocumentLines": [
+        5,
+        7,
+        10,
+        18,
+        11
+      ]
+    },
+    "src/Transaction.js": {
+      "expectCount": 12,
+      "actualCount": 0,
+      "undocumentLines": [
+        3,
+        58,
+        6,
+        5,
+        51,
+        9,
+        59,
+        7,
+        8,
+        13,
+        10,
+        22
+      ]
+    }
+  }
+}

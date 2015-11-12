@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl">
+  <title data-ice="title">API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <a data-ice="repoURL" href="https://github.com/anyTV/anytv-node-mysql.git" class="repo-url-github">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Connection.js~Connection.html">Connection</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/CustomMySQL.js~CustomMySQL.html">CustomMySQL</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Query.js~Query.html">Query</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Transaction.js~Transaction.html">Transaction</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><h1 id="anytv-node-mysql">anytv-node-mysql</h1>
+<p>Our version of mysql that makes connecting to mysql simpler and more elegant. Especially made for our awesome expressjs <a href="https://github.com/anyTV/anytv-node-boilerplate">boilerplate</a>.</p>
+<h1 id="install">Install</h1>
+<pre><code class="lang-sh"><code class="source-code prettyprint">npm install anytv-node-mysql --save</code>
+</code></pre>
+<h1 id="features">Features</h1>
+<ul>
+<li>Add a key-config pair once and use it anywhere</li>
+<li>Chain everything</li>
+<li>Do transactions elegantly</li>
+<li>Automatic rollback on transactions</li>
+<li>Easy to specify if you want a pool connection or a per-query connection</li>
+<li>Specify errors that can be retried and set their max retries</li>
+<li>Auto-reconnect</li>
+<li>Easy debugging</li>
+<li>Use <code>.args(...)</code> to help closures</li>
+</ul>
+<h1 id="usage">Usage</h1>
+<h3 id="adding-database-config">Adding database config</h3>
+<p>On your index.js / server.js / app.js, register your database using a key.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">import mysql from &apos;anytv-node-mysql&apos;;
+
+mysql.add(&apos;my_db&apos;, {
+    host: &apos;localhost&apos;,
+    user: &apos;root&apos;,
+    password: &apos;&apos;,
+    database: test
+});</code>
+</code></pre>
+<h3 id="doing-a-single-query">Doing a single query</h3>
+<p>After registering a db key and config, you can now start querying.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">mysql.query(
+        &apos;SELECT name FROM users WHERE name = ?&apos;,
+        [&apos;name&apos;],
+        callback
+    )
+    .end();</code>
+</code></pre>
+<p><strong>Note:</strong> Single connections will only be created on <code>mysql.query(...)</code> while pooled connections will be created on <code>mysql.use(&apos;db1&apos;, config.DB, true)</code>.</p>
+<h3 id="doing-multiple-queries-using-1-connection">Doing multiple queries using 1 connection</h3>
+<p>You can chain queries and use a single connection.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">mysql.query(
+        &apos;SELECT name FROM users WHERE name = ?&apos;,
+        [&apos;name&apos;],
+        callback
+    )
+    .query(
+        &apos;SELECT address FROM users WHERE name = ?&apos;,
+        [&apos;name2&apos;],
+        callback2
+    )
+    .end();</code>
+</code></pre>
+<h3 id="using-multiple-database-configs">Using multiple database configs</h3>
+<p>In case you registered multiple databases, you can switch the current db by invoking <code>mysql.use(key)</code>.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">import mysql from &apos;anytv-node-mysql&apos;;
+
+mysql.add(&apos;db_1&apos;, config.DB1);
+mysql.add(&apos;db_2&apos;, config.DB2);
+
+mysql.use(&apos;db1&apos;)
+    .query(
+        &apos;SELECT name FROM users WHERE name = ?&apos;,
+        [&apos;name&apos;],
+        callback
+    )
+    .end();
+
+
+mysql.use(&apos;db2&apos;)
+    .query(
+        &apos;SELECT name FROM users WHERE name = ?&apos;,
+        [&apos;name2&apos;],
+        callback2
+    )
+    .end();</code>
+</code></pre>
+<p>You can also switch databases right after ending.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">mysql.use(&apos;db1&apos;)
+    .query(
+        &apos;SELECT name FROM users WHERE name = ?&apos;,
+        [&apos;name&apos;],
+        callback
+    )
+    .end() // if you forgot to call this, the .use(&apos;db2&apos;) will do it for you
+    .use(&apos;db2&apos;)
+    .query(
+        &apos;SELECT name FROM users WHERE name = ?&apos;,
+        [&apos;name2&apos;],
+        callback2
+    )
+    .end();</code>
+</code></pre>
+<h3 id="doing-transactions">Doing transactions</h3>
+<p>Creating a transaction returns a transaction object, not the mysql object. It&apos;s not possible to do another query after doing a commit.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">mysql.use(&apos;db1&apos;)
+    .transaction()
+    .query(&apos;INSERT INTO unique_email(email) VALUES (?)&apos;, [&apos;unique&apos;], callback)
+    .query(&apos;INSERT INTO unique_email(email) VALUES (?)&apos;, [&apos;unique&apos;], callback)
+    .query(&apos;SELECT * FROM unique_email WHERE email = ?&apos;, [&apos;unique&apos;], callback)
+    .commit(final_callback);</code>
+</code></pre>
+<p>If a query fails, the next queries won&apos;t be executed anymore. Plus, the <code>callback</code> and <code>final_callback</code> will have the same arguments.</p>
+<h3 id="solving-problem-with-closures">Solving problem with closures</h3>
+<p>Same with you, we had trouble with closures when we&apos;re querying inside a loop. We created a function where you can pass anything and we&apos;ll include it on the callback.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">mysql.use(&apos;db1&apos;)
+    .args(obj, 2, &apos;config&apos;)
+    .query(&apos;INSERT INTO unique_email(email) VALUES (?)&apos;, [&apos;unique&apos;], callback)
+    .end();
+
+function callback (err, result, args, last_query) {
+    args[0] === obj;
+    args[1] === 2;
+    args[2] === &apos;config&apos;;
+}</code>
+</code></pre>
+<h3 id="handling-callbacks-and-debugging-errors">Handling callbacks and debugging errors</h3>
+<p>We follow the node convention of callbacks. Error first followed by result.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">mysql.use(&apos;db1&apos;)
+    .query(&apos;INSERT INTO unique_email(email) VALUES (?)&apos;, [&apos;unique&apos;], callback)
+    .end();
+
+function callback (err, result, args, last_query) {
+    if (err) {
+        // do something with the error
+        ...
+        return;
+    }
+
+    // do something with the result
+    ...
+}</code>
+</code></pre>
+<p>The last executed query is accessible on the <code>last_query</code> variable.</p>
+<h3 id="setting-retryable-errors">Setting retryable errors</h3>
+<p>To solve intermittent issues, we added a function that accepts an array of error codes where the library will keep on retrying until it works or until it reaches the maximum retries. Default maximum retries is 3.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">mysql.use(&apos;db1&apos;)
+    .retry_if([&apos;ER_LOCK_DEADLOCK&apos;, &apos;PROTOCOL_SEQUENCE_TIMEOUT&apos;])
+    .set_max_retry(5)
+    .query(&apos;INSERT INTO unique_email(email) VALUES (?)&apos;, [&apos;unique&apos;], callback)
+    .end();</code>
+</code></pre>
+<p><strong>NOTE:</strong> We clear the retryable errors on <code>mysql.use(key)</code>.</p>
+<h3 id="solving-on-the-fly-db-config">Solving on-the-fly db config</h3>
+<p>We added a <code>.open</code> function that accepts a config.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">mysql.open({
+        host: &apos;localhost&apos;,
+        user: dynamic_variable,
+        password: dynamic_variable2,
+        database: &apos;test&apos;
+    })
+    .query(&apos;INSERT INTO unique_email(email) VALUES (?)&apos;, [&apos;unique&apos;], callback)
+    .end();</code>
+</code></pre>
+<h3 id="instantiating-a-pooled-connection">Instantiating a pooled connection</h3>
+<p>The <code>mysql.use(...)</code> accepts a boolean 3rd parameter. If true, we&apos;ll use a pool connection and create it immediately. Calling <code>.end()</code> on pooled connections won&apos;t do anything.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">mysql.add(&apos;db1&apos;, config.DB1, true);
+
+mysql.use(&apos;db1&apos;)
+    .query(&apos;INSERT INTO unique_email(email) VALUES (?)&apos;, [&apos;unique&apos;], callback)
+    .end();</code>
+</code></pre>
+<h1 id="contributing">Contributing</h1>
+<p>Install the tools needed:</p>
+<pre><code class="lang-sh"><code class="source-code prettyprint">npm install babel -g
+npm install babel-preset-es2015 --save-dev
+npm install esdoc -g
+npm install --dev</code>
+</code></pre>
+<p>To compile the ES6 source code to ES5:</p>
+<pre><code class="lang-sh"><code class="source-code prettyprint">babel src --watch --out-dir lib</code>
+</code></pre>
+<p>To generate the docs:</p>
+<pre><code class="lang-sh"><code class="source-code prettyprint">esdoc -c ./esdoc.json</code>
+</code></pre>
+<h1 id="running-test">Running test</h1>
+<pre><code class="lang-sh"><code class="source-code prettyprint">npm test</code>
+</code></pre>
+<h1 id="license">License</h1>
+<p>MIT</p>
+<h1 id="author">Author</h1>
+<p><a href="https://www.freedom.tm">Freedom! Labs, any.TV Limited DBA Freedom!</a></p>
+</div>
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.3)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>
