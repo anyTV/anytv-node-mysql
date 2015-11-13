@@ -245,7 +245,7 @@ npm test
 ```sh
 npm run coverage
 ```
-Then open lib-cov/coverage.html.
+Then open coverage/lcov-report/index.html.
 
 # License
 
