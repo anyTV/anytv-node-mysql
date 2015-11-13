@@ -1,6 +1,7 @@
 # anytv-node-mysql
 
 [![Build Status](https://travis-ci.org/anyTV/anytv-node-mysql.svg?branch=master)](https://travis-ci.org/anyTV/anytv-node-mysql)
+[![Coverage Status](https://coveralls.io/repos/anyTV/anytv-node-mysql/badge.svg?branch=master&service=github)](https://coveralls.io/github/anyTV/anytv-node-mysql?branch=master)
 
 Our version of mysql that makes connecting to mysql simpler and more elegant. Especially made for our awesome expressjs [boilerplate](https://github.com/anyTV/anytv-node-boilerplate).
 
@@ -212,8 +213,8 @@ mysql.set_logger(my_new_logger);
 Install the tools needed:
 ```sh
 npm install babel -g
-npm install babel-preset-es2015 --save-dev
 npm install esdoc -g
+npm install mocha -g
 npm install --dev
 ```
 

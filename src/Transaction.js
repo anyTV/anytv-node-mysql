@@ -12,7 +12,15 @@ export default class Transaction {
 
     query () {
         if (arguments.length < 2) {
-            throw new Error('Too few arguments. Must at least have query and callback');
+            throw new Error('Incomplete arguments. Have at least a query and a callback');
+        }
+
+        if (typeof arguments[0] !== 'string') {
+            throw new Error('Query is not a string');
+        }
+
+        if (typeof arguments[arguments.length - 1] !== 'function') {
+            throw new Error('Last parameter is not a function');
         }
 
         this.queries.push(Array.from(arguments));

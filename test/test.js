@@ -3,10 +3,10 @@
 const should = require('chai').should();
 const CustomMySQL = require(process.cwd() + '/lib/CustomMySQL').default;
 const FREE_DB = {
-    host: 'db4free.net',
-    user: 'qasrgsdahw',
-    password: 'wIUiPxuzxV',
-    database: 'anytv_node_mysql'
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'test'
 };
 
 
@@ -632,7 +632,62 @@ describe('Overall test', () => {
 
 
 
-    it ('mysql.transaction.commit should return the mysql object', (done) => {
+    it ('mysql.transaction().query should throw an error if argument length is less than 2', (done) => {
+        const mysql = new CustomMySQL();
+        const key = 'key';
+
+        (() => {
+            mysql.add(key, FREE_DB)
+                .set_logger(noop_logger)
+                .transaction()
+                .query();
+        }).should.throw(Error, 'Incomplete arguments. Have at least a query and a callback');
+
+        (() => {
+            mysql.add(key, FREE_DB)
+                .set_logger(noop_logger)
+                .transaction()
+                .query('');
+        }).should.throw(Error, 'Incomplete arguments. Have at least a query and a callback');
+
+        done();
+    });
+
+
+
+    it ('mysql.transaction().query should throw an error if query is not a string', (done) => {
+        const mysql = new CustomMySQL();
+        const key = 'key';
+
+        (() => {
+            mysql.add(key, FREE_DB)
+                .set_logger(noop_logger)
+                .transaction()
+                .query(1, 2);
+        }).should.throw(Error, 'Query is not a string');
+
+        done();
+    });
+
+
+
+    it ('mysql.transaction().query should throw an error if last parameter is not function', (done) => {
+        const mysql = new CustomMySQL();
+        const key = 'key';
+
+        (() => {
+            mysql.add(key, FREE_DB)
+                .set_logger(noop_logger)
+                .transaction()
+                .query('1', 2);
+        }).should.throw(Error, 'Last parameter is not a function');
+
+        done();
+    });
+
+
+
+    it ('mysql.transaction...commit should return the mysql object', (done) => {
         const mysql = new CustomMySQL();
         const key = 'key';
         let temp;

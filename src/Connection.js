@@ -55,6 +55,7 @@ export default class Connection {
         return this;
     }
 
+    /*
     keep_alive () {
         setInterval(() => {
             this.handle.query('SELECT 1;', (err) => {
@@ -65,13 +66,5 @@ export default class Connection {
         }, 5000);
 
         return this;
-    }
-
-    end () {
-        if (this.handle.current_connection) {
-            this.handle.current_connection.end();
-        }
-
-        return this;
-    }
+    }*/
 }
