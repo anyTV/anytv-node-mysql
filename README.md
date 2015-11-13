@@ -234,6 +234,13 @@ esdoc -c ./esdoc.json
 npm test
 ```
 
+# Code coverage
+
+```sh
+npm run coverage
+```
+Then open lib-cov/coverage.html.
+
 # License
 
 MIT
