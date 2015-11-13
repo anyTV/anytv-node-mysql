@@ -9,7 +9,7 @@
   "devDependencies": {
     "babel": "^6.1.18",
     "babel-preset-es2015": "^6.1.18",
-    "blanket": "^1.1.9",
+    "istanbul": "^0.4.0",
     "chai": "^3.4.1",
     "coveralls": "^2.11.4",
     "esdoc": "^0.4.3",
@@ -18,7 +18,7 @@
   },
   "scripts": {
     "test": "make test",
-    "coverage": "export NODE_ENV=test && mocha --require blanket -R html-cov --recursive -t 5000 -s 100 > lib-cov/coverage.html",
+    "coverage": "export NODE_ENV=test && istanbul cover _mocha -- --recursive -R spec -t 5000 -s 100",
     "test-dev": "export NODE_ENV=test && mocha --watch --recursive -R spec -t 5000 -s 100"
   },
   "repository": {
@@ -33,19 +33,5 @@
   "bugs": {
     "url": "https://github.com/anyTV/anytv-node-mysql/issues"
   },
-  "homepage": "https://github.com/anyTV/anytv-node-mysql",
-  "config": {
-    "blanket": {
-      "pattern": [
-        "lib"
-      ],
-      "data-cover-never": [
-        "node_modules",
-        "test",
-        "src",
-        "doc",
-        "coverage"
-      ]
-    }
-  }
+  "homepage": "https://github.com/anyTV/anytv-node-mysql"
 }
