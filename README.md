@@ -213,7 +213,7 @@ mysql.set_logger(my_new_logger);
 
 # Documentation
 
-Code documentation can be found at (https://doc.esdoc.org/github.com/anyTV/anytv-node-mysql/)[https://doc.esdoc.org/github.com/anyTV/anytv-node-mysql/].
+Code documentation can be found at [here](https://doc.esdoc.org/github.com/anyTV/anytv-node-mysql/).
 
 
 # Contributing
