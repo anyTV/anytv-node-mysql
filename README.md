@@ -4,6 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/anyTV/anytv-node-mysql/badge.svg?branch=master&service=github)](https://coveralls.io/github/anyTV/anytv-node-mysql?branch=master)
 [![Documentation](https://doc.esdoc.org/github.com/anyTV/anytv-node-mysql/badge.svg?branch=master&service=github)](https://doc.esdoc.org/github.com/anyTV/anytv-node-mysql?branch=master)
 [![Dependencies](https://david-dm.org/anyTV/anytv-node-mongo.svg)](https://david-dm.org/anyTV/anytv-node-mongo)
+[![npm version](https://badge.fury.io/js/anytv-node-mysql.svg)](https://badge.fury.io/js/anytv-node-mysql)
 
 Our version of mysql that makes connecting to mysql simpler and more elegant. Especially made for our awesome expressjs [boilerplate](https://github.com/anyTV/anytv-node-boilerplate).
 
