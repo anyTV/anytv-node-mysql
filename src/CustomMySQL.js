@@ -124,7 +124,22 @@ export default class CustomMySQL {
         return this;
     }
 
+    end_pool () {
+        if (this._key && this[this._key].connection) {
+            this[this._key].connection.end((err) => {
+                if (err) {
+                    return this._logger(`Closing pool ${this._key} error: \n`, err);
+                }
 
+                this._logger('Pool ${this._key} closed');
+            });
+
+            this.current_connection = null;
+            this[this._key].connection = null;
+        }
+
+        return this;
+    }
 
     /* Everything below will be deprecated */
 
