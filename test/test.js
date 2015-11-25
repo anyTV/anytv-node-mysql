@@ -735,6 +735,22 @@ describe('Overall test', () => {
         done();
     });
 
+    it ('mysql.end_pool should close pooled connections', (done) => {
+        const mysql = new CustomMySQL();
+        const key = 'key';
+
+        mysql.set_logger(noop_logger)
+            .add(key, {}, true)
+            .use(key)
+            .end_pool();
+
+        should.equal(mysql[key].connection, null);
+
+        should.equal(mysql.current_connection, null);
+
+        done();
+    });
+
     it ('mysql.end_pool should return the mysql object', (done) => {
         const mysql = new CustomMySQL();
         const key = 'key';
@@ -742,12 +758,8 @@ describe('Overall test', () => {
         mysql.set_logger(noop_logger)
             .add(key, {}, true)
             .use(key)
-            .query('1', () => {})
-            .end_pool();
-
-        should.equal(mysql[key].connection, null);
-
-        should.equal(mysql.current_connection, null);
+            .end_pool()
+            .should.be.equal(mysql)
 
         done();
     });

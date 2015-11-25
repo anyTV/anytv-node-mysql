@@ -128,10 +128,10 @@ export default class CustomMySQL {
         if (this._key && this[this._key].connection) {
             this[this._key].connection.end((err) => {
                 if (err) {
-                    return this._logger(`Closing pool ${this._key} error: \n`, err);
+                    return this._logger.error(`Closing pool ${this._key} error: \n`, err);
                 }
 
-                this._logger('Pool ${this._key} closed');
+                this._logger.info(`Pool ${this._key} closed`);
             });
 
             this.current_connection = null;
