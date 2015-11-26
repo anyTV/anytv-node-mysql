@@ -204,6 +204,21 @@ mysql.use('db1')
 	.end();
 ```
 
+### Closing a pooled connection
+Use mysql.end_pool() to close a pooled connection.
+```javascript
+mysql.add('db1', config.DB1, true);
+
+let db1 = mysql.use('db1');
+db1.query('INSERT INTO unique_email(email) VALUES (?)', ['unique'], callback)
+    .end();
+
+db1.query('INSERT INTO unique_email(email) VALUES (?)', ['uniqu3'], callback)
+    .end();
+
+db1.end_pool();
+```
+
 
 ### Using a different logger
 ```javascript
