@@ -69,7 +69,7 @@ export default class CustomMySQL {
         this._key = key;
         this.retryable_errors = null;
 
-        if (!this.is_pool && this.current_connection) {
+        if (this.current_connection) {
             this.end();
         }
 
