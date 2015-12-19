@@ -235,7 +235,7 @@ Code documentation can be found at [here](https://doc.esdoc.org/github.com/anyTV
 
 Install the tools needed:
 ```sh
-npm install babel -g
+npm install babel-cli -g
 npm install esdoc -g
 npm install mocha -g
 npm install --dev
