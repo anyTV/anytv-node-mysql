@@ -38,8 +38,8 @@ export default class Transaction {
 
         if (typeof current_query === 'undefined') {
             this.release();
-            return (this.conn
-                ? this.conn
+            return (this.temp_conn
+                ? this.temp_conn
                 : this.connection).commit((err) => {
                 this.final_callback(err, null, this.connection);
             });

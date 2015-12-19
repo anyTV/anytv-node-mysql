@@ -565,8 +565,6 @@ describe('Overall test', () => {
                 should.equal(err, null);
                 done();
             });
-
-        done();
     });
 
 
