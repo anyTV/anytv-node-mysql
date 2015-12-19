@@ -3,6 +3,11 @@
 export default class Transaction {
 
     constructor (mysql) {
+
+        if (mysql[mysql._key].is_pool) {
+            this.is_pool = true;
+        }
+
         this.connection = mysql.current_connection;
         this.mysql = mysql;
         this.queries = [];
@@ -32,7 +37,10 @@ export default class Transaction {
         const last_query = current_query && current_query[0];
 
         if (typeof current_query === 'undefined') {
-            return this.connection.commit((err) => {
+            this.release();
+            return (this.conn
+                ? this.conn
+                : this.connection).commit((err) => {
                 this.final_callback(err, null, this.connection);
             });
         }
@@ -43,6 +51,7 @@ export default class Transaction {
 
 
             if (err) {
+                this.release();
                 return this.connection.rollback(() => {
                     this.final_callback(err, result, this.mysql._args, last_query);
                 });
@@ -53,6 +62,7 @@ export default class Transaction {
         }
 
         if (err) {
+            this.release();
             return this.final_callback({message: 'Error in creating transaction'});
         }
 
@@ -63,9 +73,29 @@ export default class Transaction {
         this.connection.query.apply(this.connection, current_query);
     }
 
+    release () {
+        if (this.temp_conn) {
+            this.temp_conn.release();
+        }
+    }
+
     commit (cb) {
         this.final_callback = cb;
-        this.connection.beginTransaction(this.run_queries.bind(this));
+
+        if (this.is_pool) {
+            this.connection.getConnection((err, conn) => {
+                if (err) {
+                    return this.final_callback({message: 'Error in getting a connection from a pool'});
+                }
+
+                this.temp_conn = conn;
+                conn.beginTransaction(this.run_queries.bind(this));
+            });
+        }
+        else {
+            this.connection.beginTransaction(this.run_queries.bind(this));
+        }
+
         return this.mysql;
     }
 }

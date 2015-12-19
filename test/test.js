@@ -5,7 +5,7 @@ const CustomMySQL = require(process.cwd() + '/lib/CustomMySQL').default;
 const FREE_DB = {
     host: 'localhost',
     user: 'root',
-    password: '',
+    password: 'user',
     database: 'test'
 };
 
@@ -14,6 +14,7 @@ const FREE_DB = {
 describe('Overall test', () => {
 
     const noop_logger = {
+        silly: () => {},
         info: () => {},
         log: () => {}
     };
@@ -541,6 +542,29 @@ describe('Overall test', () => {
             .set_logger(noop_logger)
             .query('1', () => {})
             .should.be.equal(mysql);
+
+        done();
+    });
+
+
+
+    it ('mysql.transcation should do the same with pooled connections', (done) => {
+        const mysql = new CustomMySQL();
+        const key = 'key';
+
+        mysql.add(key, FREE_DB, true)
+            .set_logger(noop_logger)
+            .transaction()
+            .query('SELECT 1', (err) => {
+                should.equal(err, null);
+            })
+            .query('SELECT 2', (err) => {
+                should.equal(err, null);
+            })
+            .commit((err) => {
+                should.equal(err, null);
+                done();
+            });
 
         done();
     });

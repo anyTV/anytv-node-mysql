@@ -17,7 +17,7 @@ export default class Connection {
         let connection;
 
         if (handle[key].is_pool) {
-            handle._logger.silly('Added a pool connection for', key);
+            // handle._logger.log('Added a pool connection for', key);
             connection = mysql.createPool(handle[key].config);
         }
         else {
