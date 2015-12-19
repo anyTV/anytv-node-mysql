@@ -117,9 +117,10 @@ export default class CustomMySQL {
     end () {
         if (this._key && !this[this._key].is_pool && this[this._key].connection) {
             this[this._key].connection.end();
-            this.current_connection = null;
             this[this._key].connection = null;
         }
+
+        this.current_connection = null;
 
         return this;
     }

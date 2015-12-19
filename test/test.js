@@ -5,8 +5,14 @@ const CustomMySQL = require(process.cwd() + '/lib/CustomMySQL').default;
 const FREE_DB = {
     host: 'localhost',
     user: 'root',
-    password: 'user',
+    password: '',
     database: 'test'
+};
+const FREE_DB2 = {
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'test2'
 };
 
 
@@ -268,6 +274,27 @@ describe('Overall test', () => {
         mysql._key.should.be.equal(key);
 
         done();
+    });
+
+
+
+    it ('mysql.use should be able to use multiple pools', (done) => {
+        const mysql = new CustomMySQL();
+
+        mysql.add('key', FREE_DB, true);
+        mysql.add('key2', FREE_DB2, true);
+
+        mysql.use('key')
+            .query('SELECT DATABASE() as d', (e, r) => {
+                r[0].d.should.exist;
+            })
+            .end()
+            .use('key2')
+            .query('SELECT DATABASE() as d', (e, r) => {
+                r[0].d.should.exist;
+                done();
+            })
+            .end();
     });
 
 
