@@ -41,7 +41,7 @@ export default class Transaction {
             return (this.temp_conn
                 ? this.temp_conn
                 : this.connection).commit((err) => {
-                this.final_callback(err, null, this.connection);
+                this.final_callback(err, null, this.mysql._args, last_query);
             });
         }
 
