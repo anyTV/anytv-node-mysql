@@ -317,15 +317,15 @@ describe('Overall test', () => {
 
     it ('mysql.use should end hanging non-pooled connection', (done) => {
         const mysql = new CustomMySQL();
-        const key = 'key';
 
-        mysql.add(key, {})
+        mysql.add('new_key', {})
+            .add('key', {})
             .set_logger(noop_logger)
             .query('SELECT 1', () => {});
 
         mysql.current_connection.should.exist;
 
-        mysql.use(key);
+        mysql.use('new_key');
         should.equal(mysql.current_connection, null);
 
         done();

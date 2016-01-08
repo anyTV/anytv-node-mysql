@@ -69,6 +69,9 @@ export default class Query {
 
 
         if (!mysql_handler.current_connection) {
+            if (this.mysql[this.mysql._key].connection) {
+                this.mysql.current_connection = this.mysql[this.mysql._key].connection;
+            }
             new Connection(mysql_handler);
         }
 
