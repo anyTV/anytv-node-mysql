@@ -66,8 +66,13 @@ export default class CustomMySQL {
             throw new Error('Key does not exist. Add a connection first by using mysql.add(key, config, is_pool)');
         }
 
-        this._key = key;
         this.retryable_errors = null;
+
+        if (this._key === key) {
+            return this;
+        }
+
+        this._key = key;
 
         if (this.current_connection) {
             this.end();
