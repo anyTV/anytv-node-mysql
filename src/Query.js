@@ -21,6 +21,7 @@ export default class Query {
         const _args = Array.from(arguments);
         const mysql_handler = this.mysql;
         const last_query = arguments[0];
+        const current_args = mysql_handler._args;
 
         let len = arguments.length;
         let connection;
@@ -44,7 +45,7 @@ export default class Query {
                             previous_errors: this.previous_errors
                         },
                         null,
-                        mysql_handler._args,
+                        current_args,
                         last_query
                     );
                 }
@@ -53,7 +54,7 @@ export default class Query {
             }
 
             // call callback
-            cb(err, result, mysql_handler._args, last_query);
+            cb(err, result, current_args, last_query);
         }
 
         while (len--) {
