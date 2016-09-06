@@ -419,20 +419,6 @@ describe('Overall test', () => {
 
 
 
-    it ('mysql.query should throw an error if query is not a string', (done) => {
-        const mysql = new CustomMySQL();
-        const key = 'key';
-
-        (() => {
-            mysql.add(key, {})
-                .query(1, 2);
-        }).should.throw(Error, 'Query is not a string');
-
-        done();
-    });
-
-
-
     it ('mysql.query should throw an error if last parameter is not function', (done) => {
         const mysql = new CustomMySQL();
         const key = 'key';

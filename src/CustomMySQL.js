@@ -99,10 +99,6 @@ export default class CustomMySQL {
             throw new Error('Incomplete arguments. Have at least a query and a callback');
         }
 
-        if (typeof arguments[0] !== 'string') {
-            throw new Error('Query is not a string');
-        }
-
         if (typeof arguments[arguments.length - 1] !== 'function') {
             throw new Error('Last parameter is not a function');
         }
