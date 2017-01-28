@@ -2,12 +2,8 @@
 
 const should = require('chai').should();
 const CustomMySQL = require(process.cwd() + '/lib/CustomMySQL').default;
-const FREE_DB = {
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'test'
-};
+
+const FREE_DB = 'mysql://root:@localhost/test';
 const FREE_DB2 = {
     host: 'localhost',
     user: 'root',
@@ -116,18 +112,6 @@ describe('Overall test', () => {
         (() => {
             mysql.add(1, {});
         }).should.throw(Error, 'key should be a string');
-
-        done();
-    });
-
-
-
-    it ('mysql.add should throw an error if config is not an object', (done) => {
-        const mysql = new CustomMySQL();
-
-        (() => {
-            mysql.add('key', 1);
-        }).should.throw(Error, 'config should be an object');
 
         done();
     });

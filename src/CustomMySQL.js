@@ -37,10 +37,6 @@ export default class CustomMySQL {
             throw new Error('key should be a string');
         }
 
-        if (typeof config !== 'object') {
-            throw new Error('config should be an object');
-        }
-
         this._key = key;
         this[key] = {config};
         this[key].is_pool = !!is_pool;
