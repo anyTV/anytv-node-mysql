@@ -33,14 +33,17 @@ export default class Transaction {
     }
 
     run_queries (err) {
+
         const current_query = this.queries.shift();
         const last_query = current_query && current_query[0];
 
+        const connection = this.is_pool
+            ? this.temp_conn
+            : this.connection;
+
         if (typeof current_query === 'undefined') {
-            this.release();
-            return (this.temp_conn
-                ? this.temp_conn
-                : this.connection).commit((err) => {
+            return connection.commit((err) => {
+                this.release();
                 this.final_callback(err, null, this.mysql._args, last_query);
             });
         }
@@ -51,8 +54,9 @@ export default class Transaction {
 
 
             if (err) {
-                this.release();
-                return this.connection.rollback(() => {
+
+                return connection.rollback(() => {
+                    this.release();
                     this.final_callback(err, result, this.mysql._args, last_query);
                 });
             }
@@ -70,7 +74,7 @@ export default class Transaction {
 
         current_query.push(custom_cb.bind(this))
 
-        this.connection.query.apply(this.connection, current_query);
+        connection.query.apply(connection, current_query);
     }
 
     release () {
@@ -89,7 +93,7 @@ export default class Transaction {
                 }
 
                 this.temp_conn = conn;
-                conn.beginTransaction(this.run_queries.bind(this));
+                this.temp_conn.beginTransaction(this.run_queries.bind(this));
             });
         }
         else {
