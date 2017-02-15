@@ -107,6 +107,29 @@ export default class CustomMySQL {
         return this;
     }
 
+    build () {
+        this._cache = Array.from(arguments);
+        return this;
+    }
+
+    promise () {
+
+        return new Promise((resolve, reject) => {
+
+            this._cache.push(function (err, result, args, last_query) {
+
+                if (err) {
+                    return reject(err);
+                }
+
+                resolve(result);
+            });
+
+            this.query.apply(this, this._cache);
+            this.end();
+        });
+    }
+
     transaction () {
         if (!this.current_connection) {
             new Connection(this);
