@@ -57,6 +57,18 @@ mysql.query(
 	.end();
 ```
 
+### Doing a single query using promise
+After registering a db key and config, you can now start querying.
+```javascript
+mysql.build(
+		'SELECT name FROM users WHERE name = ?',
+		['name']
+	)
+	.promise()
+	.then()
+	.catch();
+```
+
 **Note:** Single connections will only be created on `mysql.query(...)` while pooled connections will be created on `mysql.use('db1', config.DB, true)`.
 
 ### Doing multiple queries using 1 connection
