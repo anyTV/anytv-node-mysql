@@ -2,12 +2,8 @@
 
 const should = require('chai').should();
 const CustomMySQL = require(process.cwd() + '/lib/CustomMySQL').default;
-const FREE_DB = {
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'test'
-};
+
+const FREE_DB = 'mysql://root:@localhost/test';
 const FREE_DB2 = {
     host: 'localhost',
     user: 'root',
@@ -116,18 +112,6 @@ describe('Overall test', () => {
         (() => {
             mysql.add(1, {});
         }).should.throw(Error, 'key should be a string');
-
-        done();
-    });
-
-
-
-    it ('mysql.add should throw an error if config is not an object', (done) => {
-        const mysql = new CustomMySQL();
-
-        (() => {
-            mysql.add('key', 1);
-        }).should.throw(Error, 'config should be an object');
 
         done();
     });
@@ -669,7 +653,7 @@ describe('Overall test', () => {
                 should.equal(err, null);
                 result.should.exist;
             })
-            .query('CREATE TABLE users(name varchar(128) unique);', (err, result) => {
+            .query('CREATE TABLE users(name varchar(128) primary key);', (err, result) => {
                 should.equal(err, null);
                 result.should.exist;
             })
@@ -703,6 +687,61 @@ describe('Overall test', () => {
                     )
                     .end();
             });
+    });
+
+
+
+    it ('mysql.transaction should automatically rollback if one query fails on pooled connections', (done) => {
+        const mysql = new CustomMySQL();
+        const key = 'key';
+
+        mysql.add(key, FREE_DB, true)
+            .set_logger(noop_logger)
+            .query('DROP TABLE IF EXISTS users2;', (err, result) => {
+
+                should.equal(err, null);
+                result.should.exist;
+
+                mysql.query('CREATE TABLE users2 (name varchar(128) primary key);', (err, result) => {
+
+                        should.equal(err, null);
+                        result.should.exist;
+
+                        mysql.use(key)
+                            .transaction()
+                            .query('INSERT INTO users2 VALUES (?)', ['name1'], (err, result) => {
+                                should.equal(err, null);
+                                result.should.exist;
+                            })
+                            .query('INSERT INTO users2 VALUES (?)', ['name1'], (err) => {
+                                err.should.exist;
+                            })
+                            .query('INSERT INTO users2 VALUES (?)', ['name2'], (err) => {
+                                // this won't be executed anymore
+                            })
+                            .commit((err) => {
+                                err.should.exist;
+
+                                mysql.query(
+                                        'SELECT name FROM users2',
+                                        (err, result) => {
+                                            should.equal(err, null);
+                                            result.length.should.equal(0);
+                                        }
+                                    )
+                                    .query(
+                                        'DROP TABLE IF EXISTS users2;',
+                                        (err) => {
+                                            should.equal(err, null);
+                                            done();
+                                        }
+                                    )
+                                    .end();
+                            });
+                    })
+                    .end();
+            })
+            .end();
     });
 
 
