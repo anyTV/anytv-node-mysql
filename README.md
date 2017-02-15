@@ -58,7 +58,7 @@ mysql.query(
 ```
 
 ### Doing a single query using promise
-After registering a db key and config, you can now start querying.
+Automatically closes the connection and does not work on transactions.
 ```javascript
 mysql.build(
 		'SELECT name FROM users WHERE name = ?',
