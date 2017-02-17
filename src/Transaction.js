@@ -32,6 +32,19 @@ export default class Transaction {
         return this;
     }
 
+
+    squel (query, callback) {
+
+        if (typeof query.toParam !== 'function') {
+            throw new Error('toParam is not a function');
+        }
+
+        query = query.toParam();
+
+        return this.query(query.text, query.values, callback);
+    }
+
+
     run_queries (err) {
 
         const current_query = this.queries.shift();

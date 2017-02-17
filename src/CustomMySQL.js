@@ -103,6 +103,17 @@ export default class CustomMySQL {
         return this;
     }
 
+    squel (query, callback) {
+
+        if (typeof query.toParam !== 'function') {
+            throw new Error('toParam is not a function');
+        }
+
+        query = query.toParam();
+
+        return this.query(query.text, query.values, callback);
+    }
+
     build () {
         this._cache = Array.from(arguments);
         return this;

@@ -69,6 +69,18 @@ mysql.build(
 	.catch();
 ```
 
+### Doing a single query using [squel](http://hiddentao.com/squel)
+Works on transactions.
+```javascript
+const query = squel.select()
+	.from('users')
+	.field('name')
+	.where('name = ?', 'name');
+
+mysql.squel(query, callback)
+	.end();
+```
+
 **Note:** Single connections will only be created on `mysql.query(...)` while pooled connections will be created on `mysql.use('db1', config.DB, true)`.
 
 ### Doing multiple queries using 1 connection

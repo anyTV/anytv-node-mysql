@@ -2,8 +2,8 @@
 
 const should = require('chai').should();
 const CustomMySQL = require(process.cwd() + '/lib/CustomMySQL').default;
-
-const FREE_DB = 'mysql://root:@localhost/test';
+const squel    = require('squel').useFlavour('mysql');
+const FREE_DB  = 'mysql://root:@localhost/test';
 const FREE_DB2 = {
     host: 'localhost',
     user: 'root',
@@ -473,6 +473,50 @@ describe('Overall test', () => {
                 should.equal(err, null);
                 done();
             });
+    });
+
+
+
+    it ('mysql.squel should execute a query', (done) => {
+        const mysql = new CustomMySQL();
+        const key = 'key';
+
+        const query = squel.select()
+            .field('1');
+
+        mysql.set_logger(noop_logger)
+            .add(key, FREE_DB)
+            .squel(
+                query,
+                (err, result) => {
+                    should.equal(err, null);
+                    result.length.should.equal(1);
+                    done();
+                }
+            )
+            .end();
+    });
+
+
+
+    it ('mysql.squel should execute a query in transaction', (done) => {
+        const mysql = new CustomMySQL();
+        const key = 'key';
+
+        const query = squel.select()
+            .field('1');
+
+        mysql.set_logger(noop_logger)
+            .add(key, FREE_DB)
+            .transaction()
+            .squel(
+                query,
+                (err, result) => {
+                    should.equal(err, null);
+                    result.length.should.equal(1);
+                }
+            )
+            .commit(done);
     });
 
 
