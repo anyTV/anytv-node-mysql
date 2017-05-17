@@ -195,13 +195,23 @@ The last executed query is accessible on the `last_query` variable.
 ### Setting retryable errors
 To solve intermittent issues, we added a function that accepts an array of error codes where the library will keep on retrying until it works or until it reaches the maximum retries. Default maximum retries is 3.
 ```javascript
+
+// Retryable errors from `.retry_if()` will be cleared on the next `mysql.use(key)`
 mysql.use('db1')
 	.retry_if(['ER_LOCK_DEADLOCK', 'PROTOCOL_SEQUENCE_TIMEOUT'])
 	.set_max_retry(5)
 	.query('INSERT INTO unique_email(email) VALUES (?)', ['unique'], callback)
 	.end();
+
+
+// Can also be set in the config and it will be applied on all queries on that database
+mysql.add('db', {
+	host: 'localhost',
+	user: 'my_user',
+	password: 'my_password',
+	retryable_errors: ['ER_LOCK_DEADLOCK', 'PROTOCOL_SEQUENCE_TIMEOUT']
+});
 ```
-**NOTE:** We clear the retryable errors on `mysql.use(key)`.
 
 
 ### Solving on-the-fly db config
