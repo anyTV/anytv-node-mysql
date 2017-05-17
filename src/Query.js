@@ -10,6 +10,7 @@ export default class Query {
 
         this.previous_errors = [];
         this.mysql = mysql;
+        this.retryable_errors = this.mysql.retryable_errors || this.mysql[this.mysql._key].config.retryable_errors;
         this.retries = 0;
 
         args.shift();
@@ -22,7 +23,6 @@ export default class Query {
         const mysql_handler = this.mysql;
         const last_query = arguments[0];
         const current_args = mysql_handler._args;
-
         let len = arguments.length;
         let connection;
         let cb;
@@ -30,7 +30,7 @@ export default class Query {
         function new_callback (err, result) {
 
             // if retryable, re-try
-            if (err && mysql_handler.retryable_errors && ~mysql_handler.retryable_errors.indexOf(err.code)) {
+            if (err && this.retryable_errors && ~this.retryable_errors.indexOf(err.code)) {
                 this.retries++;
 
                 this.previous_errors.push(JSON.parse(JSON.stringify(err)));

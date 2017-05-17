@@ -614,7 +614,76 @@ describe('Overall test', () => {
     });
 
 
+    it ('mysql.query should retry if there is default retryable_errors', (done) => {
+        const mysql = new CustomMySQL();
+        const query = 'SELEC a;';
+        const key = 'key';
 
+        FREE_DB2.retryable_errors = ['ER_PARSE_ERROR'];
+
+        mysql.set_logger(noop_logger)
+            .set_max_retry(2)
+            .add(key, FREE_DB2)
+            .query(query, callback)
+            .end();
+
+        function callback (err, result, _args, last_query) {
+            should.equal(result, null);
+            err.code.should.be.equal('ER_MAX_RETRIES');
+            err.max_tries.should.be.equal(2);
+            err.previous_errors
+                .map(a => a.code)
+                .should.be
+                .eql(['ER_PARSE_ERROR', 'ER_PARSE_ERROR']);
+
+            done();
+        }
+    });
+
+
+
+    it ('mysql.query should override default retryable_errors', (done) => {
+        const mysql = new CustomMySQL();
+        const query = 'SELEC a;';
+        const query2 = 'SELECT a;';
+        const key = 'key';
+
+        FREE_DB2.retryable_errors = ['ER_PARSE_ERROR'];
+
+        mysql.set_logger(noop_logger)
+            .set_max_retry(2)
+            .add(key, FREE_DB2)
+            .query(query, callback)
+            .retry_if(['ER_BAD_FIELD_ERROR'])
+            .query(query2, callback2)
+            .end();
+
+        function callback (err, result, _args, last_query) {
+            should.equal(result, null);
+            err.code.should.be.equal('ER_MAX_RETRIES');
+            err.max_tries.should.be.equal(2);
+            err.previous_errors
+                .map(a => a.code)
+                .should.be
+                .eql(['ER_PARSE_ERROR', 'ER_PARSE_ERROR']);
+
+        }
+
+        function callback2 (err, result, _args, last_query) {
+            should.equal(result, null);
+            err.code.should.be.equal('ER_MAX_RETRIES');
+            err.max_tries.should.be.equal(2);
+            err.previous_errors
+                .map(a => a.code)
+                .should.be
+                .eql(['ER_BAD_FIELD_ERROR', 'ER_BAD_FIELD_ERROR']);
+
+            done();
+        }
+    });
+
+
+    
     it ('mysql.query should return the mysql object', (done) => {
         const mysql = new CustomMySQL();
         const key = 'key';
