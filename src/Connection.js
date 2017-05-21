@@ -18,7 +18,7 @@ export default class Connection {
 
         if (handle[key].is_pool) {
             // handle._logger.log('Added a pool connection for', key);
-            connection = mysql.createPool(handle[key].config);
+            connection = handle[key].connection || mysql.createPool(handle[key].config);
         }
         else {
             // handle._logger.log('Created a single connection');
