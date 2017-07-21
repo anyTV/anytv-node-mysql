@@ -115,7 +115,19 @@ export default class CustomMySQL {
     }
 
     build () {
-        this._cache = Array.from(arguments);
+
+        const args = Array.from(arguments);
+
+        if (args.length === 1 && typeof args[0].toParam === 'function') {
+
+            const query = args[0].toParam();
+
+            this._cache = [query.text, query.values];
+
+            return this;
+        }
+
+        this._cache = args;
         return this;
     }
 

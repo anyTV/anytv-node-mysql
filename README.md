@@ -81,6 +81,19 @@ mysql.squel(query, callback)
 	.end();
 ```
 
+### Building a query using [squel](http://hiddentao.com/squel) for using promise
+```javascript
+const query = squel.select()
+    .field('name')
+    .from('users')
+    .where('name = ?', 'name');
+
+mysql.build(query)
+    .promise()
+    .then()
+    .catch();
+```
+
 **Note:** Single connections will only be created on `mysql.query(...)` while pooled connections will be created on `mysql.use('db1', config.DB, true)`.
 
 ### Doing multiple queries using 1 connection

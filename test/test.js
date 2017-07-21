@@ -541,6 +541,28 @@ describe('Overall test', () => {
 
 
 
+    it ('mysql.build should support squel query', (done) => {
+        const mysql = new CustomMySQL();
+        const key = 'key';
+
+        const query = squel.select().function('1');
+
+        mysql.set_logger(noop_logger)
+            .add(key, FREE_DB)
+            .build(query)
+            .promise()
+            .then(result => {
+                result.length.should.equal(1);
+                done();
+            })
+            .catch(err => {
+                should.equal(err, null);
+                done();
+            });
+    });
+
+
+
     it ('mysql.query should accept query placeholder values', (done) => {
         const mysql = new CustomMySQL();
         const value = 'hi';
@@ -683,7 +705,7 @@ describe('Overall test', () => {
     });
 
 
-    
+
     it ('mysql.query should return the mysql object', (done) => {
         const mysql = new CustomMySQL();
         const key = 'key';
