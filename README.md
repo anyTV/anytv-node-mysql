@@ -290,7 +290,8 @@ npm install --dev
 
 To compile the ES6 source code to ES5:
 ```sh
-babel src --watch --out-dir lib
+npm run build
+npm run build -- --watch # for watching
 ```
 
 To generate the docs:

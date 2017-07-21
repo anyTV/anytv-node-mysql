@@ -21,7 +21,7 @@
   "scripts": {
     "build": "babel src --out-dir lib",
     "test": "make test",
-    "test-dev": "make test mocha_opt=--watch",
+    "test-dev": "make test mocha_opts=--watch",
     "coverage": "export NODE_ENV=test && istanbul cover _mocha -- --recursive -R spec -t 5000 -s 100"
   },
   "repository": {
