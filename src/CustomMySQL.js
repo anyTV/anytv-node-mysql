@@ -117,18 +117,16 @@ export default class CustomMySQL {
 
     build () {
 
-        const args = Array.from(arguments);
+        this._cache = Array.from(arguments);
 
-        if (args.length === 1 && squel.cls.isSquelBuilder(args[0])) {
+        if (squel.cls.isSquelBuilder(this._cache[0])) {
 
-            const query = args[0].toParam();
+            const query = this._cache[0].toParam();
 
-            this._cache = [query.text, query.values];
-
-            return this;
+            this._cache[0] = query.text;
+            this._cache.splice(1, 0, query.values);
         }
 
-        this._cache = args;
         return this;
     }
 
