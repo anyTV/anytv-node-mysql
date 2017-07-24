@@ -4,6 +4,7 @@ import Transaction from './Transaction';
 import Connection from './Connection';
 import Query from './Query';
 import mysql from 'mysql';
+import squel from 'squel';
 
 /**
  * This is my class description
@@ -105,8 +106,8 @@ export default class CustomMySQL {
 
     squel (query, callback) {
 
-        if (typeof query.toParam !== 'function') {
-            throw new Error('toParam is not a function');
+        if (!squel.cls.isSquelBuilder(query)) {
+            throw new Error('query is not a SquelBuilder instance');
         }
 
         query = query.toParam();
@@ -118,7 +119,7 @@ export default class CustomMySQL {
 
         const args = Array.from(arguments);
 
-        if (args.length === 1 && typeof args[0].toParam === 'function') {
+        if (args.length === 1 && squel.cls.isSquelBuilder(args[0])) {
 
             const query = args[0].toParam();
 

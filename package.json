@@ -16,13 +16,14 @@
     "istanbul": "^0.4.0",
     "mocha": "^2.3.3",
     "mocha-lcov-reporter": "^1.0.0",
-    "squel": "^5.6.0"
+    "squel": "^5.11.1"
   },
   "scripts": {
     "build": "babel src --out-dir lib",
     "test": "make test",
-    "test-dev": "make test mocha_opts=--watch",
-    "coverage": "export NODE_ENV=test && istanbul cover _mocha -- --recursive -R spec -t 5000 -s 100"
+    "test-dev": "make test mocha_extra_options='--watch'",
+    "coverage": "export NODE_ENV=test && istanbul cover _mocha -- --recursive -R spec -t 5000 -s 100",
+    "docs": "esdoc -c esdoc.json"
   },
   "repository": {
     "type": "git",

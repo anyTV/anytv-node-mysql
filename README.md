@@ -81,7 +81,7 @@ mysql.squel(query, callback)
 	.end();
 ```
 
-### Building a query using [squel](http://hiddentao.com/squel) for using promise
+### Doing a single query using [squel](http://hiddentao.com/squel) and promise
 ```javascript
 const query = squel.select()
     .field('name')
@@ -282,10 +282,7 @@ Code documentation can be found at [here](https://doc.esdoc.org/github.com/anyTV
 
 Install the tools needed:
 ```sh
-npm install babel-cli -g
-npm install esdoc -g
-npm install mocha -g
-npm install --dev
+npm install --only=dev
 ```
 
 To compile the ES6 source code to ES5:
@@ -296,11 +293,11 @@ npm run build -- --watch # for watching
 
 To generate the docs:
 ```sh
-esdoc -c ./esdoc.json
+npm run docs
 ```
 
 # Running test
-
+Make sure to build the source code before running tests.
 ```sh
 npm test
 ```
