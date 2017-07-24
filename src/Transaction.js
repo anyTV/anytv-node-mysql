@@ -1,5 +1,7 @@
 'use strict';
 
+import squel from 'squel';
+
 export default class Transaction {
 
     constructor (mysql) {
@@ -35,8 +37,8 @@ export default class Transaction {
 
     squel (query, callback) {
 
-        if (typeof query.toParam !== 'function') {
-            throw new Error('toParam is not a function');
+        if (!squel.cls.isSquelBuilder(query)) {
+            throw new Error('query is not a SquelBuilder instance');
         }
 
         query = query.toParam();

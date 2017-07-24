@@ -17,3 +17,8 @@ node_modules
 
 trash
 sblm.sublime-workspace
+
+.idea
+
+package-lock.json
+yarn.lock
