@@ -1,3 +1,12 @@
+v0.0.55
+-----
+
+* Added support for squel to build query for promise
+* Updated squel dependency
+* Use squel.cls.isSquelBuilder
+* Moved global dependencies to devDependencies
+* Added docs and build command in npm scripts
+
 v0.0.54
 -----
 

@@ -81,6 +81,19 @@ mysql.squel(query, callback)
 	.end();
 ```
 
+### Doing a single query using [squel](http://hiddentao.com/squel) and promise
+```javascript
+const query = squel.select()
+    .field('name')
+    .from('users')
+    .where('name = ?', 'name');
+
+mysql.build(query)
+    .promise()
+    .then()
+    .catch();
+```
+
 **Note:** Single connections will only be created on `mysql.query(...)` while pooled connections will be created on `mysql.use('db1', config.DB, true)`.
 
 ### Doing multiple queries using 1 connection
@@ -269,24 +282,22 @@ Code documentation can be found at [here](https://doc.esdoc.org/github.com/anyTV
 
 Install the tools needed:
 ```sh
-npm install babel-cli -g
-npm install esdoc -g
-npm install mocha -g
-npm install --dev
+npm install --only=dev
 ```
 
 To compile the ES6 source code to ES5:
 ```sh
-babel src --watch --out-dir lib
+npm run build
+npm run build -- --watch # for watching
 ```
 
 To generate the docs:
 ```sh
-esdoc -c ./esdoc.json
+npm run docs
 ```
 
 # Running test
-
+Make sure to build the source code before running tests.
 ```sh
 npm test
 ```
