@@ -4,16 +4,15 @@ import mysql from 'mysql';
 
 export default class Connection {
 
-    constructor (handle) {
+    constructor (handle, key) {
         this.max_retries = 3;
         this.handle = handle;
         this.retries = 0;
-        this.connect();
+        this.connect(key || handle._key);
     }
 
-    connect () {
+    connect (key) {
         const handle = this.handle;
-        const key = handle._key;
         let connection;
 
         if (handle[key].is_pool) {
