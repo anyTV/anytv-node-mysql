@@ -1031,8 +1031,7 @@ describe('Overall test', () => {
                     .retry_if(['ER_BAD_NULL_ERROR'])
                     .build('INSERT INTO users (SELECT IF((@tmp := COALESCE(@tmp, 0) + COALESCE(@tmp, 1))=1, NULL, @tmp))')
                     .promise()
-                    .then(() => done())
-                    .catch(err => {
+                    .then(() => {
                         mysql.use(key)
                             .query('DROP TABLE users', done)
                             .end();
