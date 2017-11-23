@@ -1013,4 +1013,34 @@ describe('Overall test', () => {
         done();
     });
 
+    it ('mysql.query should use the same key when retrying', (done) => {
+        const mysql = new CustomMySQL();
+        const key = 'key';
+        const key2 = 'key2';
+
+        mysql.set_logger(noop_logger)
+            .add(key, FREE_DB)
+            .add(key2, FREE_DB2)
+            .use(key)
+            .query('CREATE TABLE users(id int NOT NULL);', (err, result) => {
+
+                should.equal(err, null);
+                result.should.exist;
+
+                mysql.use(key)
+                    .retry_if(['ER_BAD_NULL_ERROR'])
+                    .build('INSERT INTO users (SELECT IF((@tmp := COALESCE(@tmp, 0) + COALESCE(@tmp, 1))=1, NULL, @tmp))')
+                    .promise()
+                    .then(() => {
+                        mysql.use(key)
+                            .query('DROP TABLE users', done)
+                            .end();
+                    });
+
+                mysql.use(key2);
+            });
+
+
+    });
+
 });

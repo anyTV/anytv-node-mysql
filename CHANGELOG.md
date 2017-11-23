@@ -1,3 +1,8 @@
+v0.0.56
+-----
+
+* Fixed a bug where mysql key can be changed since it's using a reference on the mysql object
+
 v0.0.55
 -----
 
