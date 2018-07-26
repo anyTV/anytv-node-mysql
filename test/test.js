@@ -1043,4 +1043,28 @@ describe('Overall test', () => {
 
     });
 
+    it('mysql.transaction should retry the query', done => {
+
+        const mysql = new CustomMySQL();
+        const key = 'key';
+
+        const query = 'SELEC 1';
+
+        mysql.set_logger(noop_logger)
+            .add(key, FREE_DB)
+            .retry_if(['ER_PARSE_ERROR'])
+            .transaction()
+            .query(
+                query,
+                (err) => {
+                    err.should.exist;
+                }
+            )
+            .commit(err => {
+                err.should.exist;
+                err.code.should.be.equal('ER_MAX_RETRIES')
+                done();
+            });
+    });
+
 });
