@@ -10,7 +10,8 @@ export default class Query {
 
         this.previous_errors = [];
         this.mysql = mysql;
-        this.retryable_errors = this.mysql.retryable_errors || this.mysql[this.mysql._key].config.retryable_errors;
+        this.key = mysql._key;
+        this.retryable_errors = this.mysql.retryable_errors || this.mysql[this.key].config.retryable_errors;
         this.retries = 0;
 
         args.shift();
@@ -69,18 +70,18 @@ export default class Query {
         }
 
 
-        if (!mysql_handler.current_connection) {
-            if (this.mysql[this.mysql._key].connection) {
-                this.mysql.current_connection = this.mysql[this.mysql._key].connection;
+        if (!connection) {
+            if (this.mysql[this.key].connection) {
+                this.mysql.current_connection = this.mysql[this.key].connection;
             }
             else {
-                new Connection(mysql_handler);
+                new Connection(mysql_handler, this.key);
             }
+
+            connection = this.mysql.current_connection;
         }
 
-        mysql_handler
-            .current_connection
-            .query
-            .apply(mysql_handler.current_connection, arguments);
+        connection.query
+            .apply(connection, arguments);
     }
 }
