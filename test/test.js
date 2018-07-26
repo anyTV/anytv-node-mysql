@@ -3,11 +3,11 @@
 const should = require('chai').should();
 const CustomMySQL = require(process.cwd() + '/lib/CustomMySQL').default;
 const squel    = require('squel').useFlavour('mysql');
-const FREE_DB  = 'mysql://root:@localhost/test';
+const FREE_DB  = 'mysql://root:root@localhost/test';
 const FREE_DB2 = {
     host: 'localhost',
     user: 'root',
-    password: '',
+    password: 'root',
     database: 'test2'
 };
 
@@ -1041,6 +1041,30 @@ describe('Overall test', () => {
             });
 
 
+    });
+
+    it('mysql.transaction should retry the query', done => {
+
+        const mysql = new CustomMySQL();
+        const key = 'key';
+
+        const query = 'SELEC 1';
+
+        mysql.set_logger(noop_logger)
+            .add(key, FREE_DB)
+            .retry_if(['ER_PARSE_ERROR'])
+            .transaction()
+            .query(
+                query,
+                (err) => {
+                    err.should.exist;
+                }
+            )
+            .commit(err => {
+                err.should.exist;
+                err.code.should.be.equal('ER_MAX_RETRIES')
+                done();
+            });
     });
 
 });
