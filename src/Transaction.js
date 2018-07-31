@@ -15,6 +15,7 @@ export default class Transaction {
         this.queries = [];
         this.errors = [];
         this.retries = 0;
+        this.retryable_errors = this.mysql.retryable_errors || mysql[mysql._key].config.retryable_errors;
     }
 
     query () {
@@ -64,19 +65,54 @@ export default class Transaction {
         }
 
         function custom_cb (err, result) {
-            // if retryable, re-try
-            this.current_cb(err, result, this.mysql._args, last_query);
-
-
+            
             if (err) {
 
+                // if retryable, re-try
+                if (this.retryable_errors && ~this.retryable_errors.indexOf(err.code)) {
+                    this.retries++;
+
+                    this.errors.push(JSON.parse(JSON.stringify(err)));
+
+                    if (this.retries === this.mysql._max_retry) {
+
+                        this.current_cb(err, result, this.mysql._args, last_query);
+                        
+                        return connection.rollback(() => {
+                            this.release();
+                            this.final_callback(
+                                {
+                                    message: 'Reached max retries',
+                                    code: 'ER_MAX_RETRIES',
+                                    max_tries: this.mysql._max_retry,
+                                    previous_errors: this.errors
+                                },
+                                null,
+                                this.mysql._args,
+                                last_query
+                            );
+                        });
+                    }
+
+                    current_query.pop();
+                    current_query.push(this.current_cb);
+                    this.queries.unshift(current_query);
+
+                    // next
+                    return this.run_queries();
+                }
+
+                this.current_cb(err, result, this.mysql._args, last_query);
                 return connection.rollback(() => {
                     this.release();
                     this.final_callback(err, result, this.mysql._args, last_query);
                 });
-            }
+            } 
 
-            // neext
+            // restart count for next query
+            this.retries = 0;
+
+            this.current_cb(err, result, this.mysql._args, last_query);
             this.run_queries();
         }
 
@@ -86,7 +122,7 @@ export default class Transaction {
         }
 
         this.current_cb = current_query.pop();
-
+        
         current_query.push(custom_cb.bind(this))
 
         connection.query.apply(connection, current_query);

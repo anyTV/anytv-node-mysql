@@ -1043,4 +1043,100 @@ describe('Overall test', () => {
 
     });
 
+    it('mysql.transaction should retry the query', done => {
+
+        const mysql = new CustomMySQL();
+        const key = 'key';
+
+        const query = 'SELECT 1 as user';
+        const invalid_query = 'SELEC 1';
+
+        mysql.set_logger(noop_logger)
+            .add(key, FREE_DB)
+            .retry_if(['ER_PARSE_ERROR'])
+            .transaction()
+            .query(
+                query,
+                (err, result) => {
+                    should.equal(err, null);
+                    result[0].user.should.be.equal(1);
+                }
+            )
+            .query(
+                invalid_query,
+                (err) => {
+                    err.should.exist;
+                }
+            )
+            .commit(err => {
+                err.should.exist;
+                err.code.should.be.equal('ER_MAX_RETRIES');
+                err.max_tries.should.be.equal(3);
+                done();
+            });
+    });
+
+    it('mysql.transaction should retry the query 5 times if max_retry is set to 5', done => {
+
+        const mysql = new CustomMySQL();
+        const key = 'key';
+
+        const invalid_query = 'SELEC 1';
+
+        mysql.set_logger(noop_logger)
+            .add(key, FREE_DB)
+            .set_max_retry(5)
+            .retry_if(['ER_PARSE_ERROR'])
+            .transaction()
+            .query(
+                invalid_query,
+                (err) => {
+                    err.should.exist;
+                }
+            )
+            .commit(err => {
+                err.should.exist;
+                err.code.should.be.equal('ER_MAX_RETRIES');
+                err.max_tries.should.be.equal(5);
+                done();
+            });
+    });
+
+    it('mysql.transaction should reset number of retries for each transaction', done => {
+
+        const mysql = new CustomMySQL();
+        const key = 'key';
+
+        const invalid_query = 'SELEC 2';
+        
+        mysql.set_logger(noop_logger)
+            .add(key, FREE_DB)
+            .retry_if(['ER_PARSE_ERROR'])
+            .transaction()
+            .query(
+                invalid_query,
+                (err) => {
+                    err.should.exist;
+                }
+            )
+            .commit(err => {
+                err.should.exist;
+                err.code.should.be.equal('ER_MAX_RETRIES');
+                err.max_tries.should.be.equal(3);
+            })
+            .transaction()
+            .query(
+                invalid_query,
+                (err) => {
+                    err.should.exist;
+                }
+            )
+            .commit(err => {
+                err.should.exist;
+                err.code.should.be.equal('ER_MAX_RETRIES');
+                err.max_tries.should.be.equal(3);
+                done();
+            });
+    });
+
 });
