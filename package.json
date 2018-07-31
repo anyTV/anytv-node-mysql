@@ -1,6 +1,6 @@
 {
   "name": "anytv-node-mysql",
-  "version": "0.0.56",
+  "version": "0.0.57",
   "description": "Our version of mysql that makes connecting to mysql simpler and more elegant. Especially made for our awesome expressjs boilerplate.",
   "main": "index.js",
   "dependencies": {
