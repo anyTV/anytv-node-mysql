@@ -94,6 +94,19 @@ mysql.build(query)
     .catch();
 ```
 
+### Doing a single query using [knex](https://knexjs.org/#Builder) and promise
+```javascript
+const query = knex
+	.select('name')
+	.from('users')
+	.where('name', 'name');
+
+mysql.build(query)
+    .promise()
+    .then()
+    .catch();
+```
+
 **Note:** Single connections will only be created on `mysql.query(...)` while pooled connections will be created on `mysql.use('db1', config.DB, true)`.
 
 ### Doing multiple queries using 1 connection

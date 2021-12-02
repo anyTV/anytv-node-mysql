@@ -126,6 +126,13 @@ export default class CustomMySQL {
             this._cache[0] = query.text;
             this._cache.splice(1, 0, query.values);
         }
+        // Check if knex instance
+        else if (this._cache[0] && this._cache[0].toSQL) {
+            const query = this._cache[0].toSQL();
+
+            this._cache[0] = query.sql;
+            this._cache.splice(1, 0, query.bindings);
+        }
 
         return this;
     }
