@@ -47,6 +47,17 @@ export default class Transaction {
         return this.query(query.text, query.values, callback);
     }
 
+    knex (query, callback) {
+
+        if (!query.toSQL) {
+            throw new Error('query is not a knex');
+        }
+
+        query = query.toSQL();
+
+        return this.query(query.sql, query.bindings, callback);
+    }
+
 
     run_queries (err) {
 
