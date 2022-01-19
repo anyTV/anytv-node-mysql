@@ -1,6 +1,6 @@
 {
   "name": "anytv-node-mysql",
-  "version": "0.0.57",
+  "version": "0.0.58",
   "description": "Our version of mysql that makes connecting to mysql simpler and more elegant. Especially made for our awesome expressjs boilerplate.",
   "main": "index.js",
   "dependencies": {
@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "babel": "^6.23.0",
-    "babel-cli": "^6.24.1",
+    "babel-cli": "^6.26.0",
     "babel-preset-es2015": "^6.1.18",
     "chai": "^3.4.1",
     "coveralls": "^2.11.4",

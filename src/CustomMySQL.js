@@ -115,6 +115,17 @@ export default class CustomMySQL {
         return this.query(query.text, query.values, callback);
     }
 
+    knex (query, callback) {
+
+        if (!query.toSQL) {
+            throw new Error('query is not a knex');
+        }
+
+        query = query.toSQL();
+
+        return this.query(query.sql, query.bindings, callback);
+    }
+
     build () {
 
         this._cache = Array.from(arguments);
@@ -125,6 +136,13 @@ export default class CustomMySQL {
 
             this._cache[0] = query.text;
             this._cache.splice(1, 0, query.values);
+        }
+        // Check if knex instance
+        else if (this._cache[0] && this._cache[0].toSQL) {
+            const query = this._cache[0].toSQL();
+
+            this._cache[0] = query.sql;
+            this._cache.splice(1, 0, query.bindings);
         }
 
         return this;
